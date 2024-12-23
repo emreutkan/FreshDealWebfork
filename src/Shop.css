@@ -1,1 +1,58 @@
-/* sfgsedsfwsedf */
+.shop_section {
+    width: 100%;
+    float: left;
+    background-color: #8eb50b;
+    height: auto;
+    padding: 90px 0px;
+    background-size: cover;
+}
+
+.shop_taital {
+    width: 100%;
+    float: left;
+    font-size: 50px;
+    color: #eaebe7;
+    font-weight: bold;
+    padding-top: 20px;
+}
+
+.shop_text {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #eaebe7;
+    margin: 30px 0px 40px 0px;
+    font-family: 'Lato', sans-serif;
+}
+
+.app_icon_main{
+    width: 100%;
+    display: flex;
+}
+
+.app_icon {
+    width: 43%;
+    float: left;
+    margin-bottom: 40px;
+}
+
+.download_bt {
+    width: 170px;
+    float: left;
+}
+
+.download_bt a {
+    width: 100%;
+    float: left;
+    font-size: 16px;
+    color: #1a1919;
+    background-color: #ffffff;
+    padding: 10px 0px;
+    text-align: center;
+    font-family: 'Lato', sans-serif;
+}
+
+.download_bt a:hover {
+    color: #fcfcfd;
+    background-color: #ff9800;
+}

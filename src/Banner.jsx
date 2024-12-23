@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, NavLink } from 'react-router';
 import './Banner.css'
 
 function Banner() {
@@ -10,18 +11,18 @@ function Banner() {
             <div className="menu_main">
                <div className="custome_menu">
                   <ul>
-                     <li className="active"><a href="index.html">Home</a></li>
-                     <li><a href="service.html">Services</a></li>
-                     <li><a href="about.html">About</a></li>
-                     <li><a href="blog.html">Blog</a></li>
-                     <li><a href="shop.html">Shop</a></li>
-                     <li><a href="contact.html">Contacts</a></li>
+                     <li><NavLink to="/">Home</NavLink></li>
+                     <li><NavLink to="/service">Services</NavLink></li>
+                     <li><NavLink to="/about">About</NavLink></li>
+                     <li><NavLink to="/blog">Blog</NavLink></li>
+                     <li><NavLink to="/shop">Shop</NavLink></li>
+                     <li><NavLink to="/contact">Contacts</NavLink></li>
                   </ul>
                </div>
                <div className="login_menu">
                         <ul>
-                           <li><a href="#">Login</a></li>
-                           <li><a href="#"><i className="fa fa-search" aria-hidden="true"></i></a></li>
+                           <li><NavLink to="/login">Login</NavLink></li>
+                           <li><Link to="#"><i className="fa fa-search" aria-hidden="true"></i></Link></li>
                         </ul>
                      </div>
             </div>
@@ -39,9 +40,9 @@ function Banner() {
                                        <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">All Category 
                                        </button>
                                        <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                          <a className="dropdown-item" href="#">Action</a>
-                                          <a className="dropdown-item" href="#">Another action</a>
-                                          <a className="dropdown-item" href="#">Something else here</a>
+                                          <Link className="dropdown-item" to="#">Action</Link>
+                                          <Link className="dropdown-item" to="#">Another action</Link>
+                                          <Link className="dropdown-item" to="#">Something else here</Link>
                                        </div>
                                     </div>
                                     <div className="main">
@@ -55,7 +56,7 @@ function Banner() {
                                        </div>
                                     </div>
                                  </div>
-                                 <div className="ordernow_bt"><a href="#">Order Now</a></div>
+                                 <div className="ordernow_bt"><Link to="#">Order Now</Link></div>
                               </div>
                            </div>
                         </div>
@@ -71,9 +72,9 @@ function Banner() {
                                     <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">All Category
                                        </button>
                                        <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                          <a className="dropdown-item" href="#">Action</a>
-                                          <a className="dropdown-item" href="#">Another action</a>
-                                          <a className="dropdown-item" href="#">Something else here</a>
+                                          <Link className="dropdown-item" to="#">Action</Link>
+                                          <Link className="dropdown-item" to="#">Another action</Link>
+                                          <Link className="dropdown-item" to="#">Something else here</Link>
                                        </div>
                                     </div>
                                     <div className='main'>
@@ -87,7 +88,7 @@ function Banner() {
                                        </div>
                                     </div>
                                  </div>
-                                 <div className="ordernow_bt"><a href="#">Order Now</a></div>
+                                 <div className="ordernow_bt"><Link to="#">Order Now</Link></div>
                               </div>
                            </div>
                         </div>
@@ -103,9 +104,9 @@ function Banner() {
                                        <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">All Category 
                                        </button>
                                        <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                          <a className="dropdown-item" href="#">Action</a>
-                                          <a className="dropdown-item" href="#">Another action</a>
-                                          <a className="dropdown-item" href="#">Something else here</a>
+                                          <Link className="dropdown-item" to="#">Action</Link>
+                                          <Link className="dropdown-item" to="#">Another action</Link>
+                                          <Link className="dropdown-item" to="#">Something else here</Link>
                                        </div>
                                     </div>
                                     <div className="main">
@@ -119,18 +120,18 @@ function Banner() {
                                        </div>
                                     </div>
                                  </div>
-                                 <div class="ordernow_bt"><a href="#">Order Now</a></div>
+                                 <div class="ordernow_bt"><Link to="#">Order Now</Link></div>
                               </div>
                            </div>
                         </div>
                      </div>
                   </div>
-                  <a className="carousel-control-prev" href="#main_slider" role="button" data-slide="prev">
+                  <Link className="carousel-control-prev" to="#main_slider" role="button" data-slide="prev">
                   <i className="fa fa-angle-left"></i>
-                  </a>
-                  <a className="carousel-control-next" href="#main_slider" role="button" data-slide="next">
+                  </Link>
+                  <Link className="carousel-control-next" to="#main_slider" role="button" data-slide="next">
                   <i className="fa fa-angle-right"></i>
-                  </a>
+                  </Link>
                </div>
       </div>
    )
