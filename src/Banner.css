@@ -52,7 +52,7 @@
     color: #8eb50b;
 }
 
-.custome_menu li.active a{
+.custome_menu li a.active{
     color: #8eb50b;
 }
 
@@ -76,6 +76,10 @@
 }
 
 .login_menu li a:hover {
+    color: #8eb50b;
+}
+
+.login_menu li a.active{
     color: #8eb50b;
 }
 

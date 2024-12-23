@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router';
 import './Service.css'
 import alcoholImg from './assets/alcohol-img.png'
 import breakfastImg from './assets/breakfast-img.png'
@@ -25,42 +26,42 @@ function Service() {
                               <div className="breakfast_img"><img src={breakfastImg}/></div>
                            </div>
                            <h4 className="breakfast_text">Breakfast</h4>
-                           <div className="seemore_bt"><a href="#">See More</a></div>
+                           <div className="seemore_bt"><Link href="#">See More</Link></div>
                         </div>
                         <div className="col">
                            <div className="service_box">
                               <div className="breakfast_img"><img src={deliveryImg}/></div>
                            </div>
                            <h4 className="breakfast_text">Delivery</h4>
-                           <div className="seemore_bt"><a href="#">See More</a></div>
+                           <div className="seemore_bt"><Link href="#">See More</Link></div>
                         </div>
                         <div className="col">
                            <div className="service_box">
                               <div className="breakfast_img"><img src={dinnerImg}/></div>
                            </div>
                            <h4 className="breakfast_text">Dinner</h4>
-                           <div className="seemore_bt"><a href="#">See More</a></div>
+                           <div className="seemore_bt"><Link href="#">See More</Link></div>
                         </div>
                         <div className="col">
                            <div className="service_box">
                               <div className="breakfast_img"><img src={coffeeImg}/></div>
                            </div>
                            <h4 className="breakfast_text">Coffee</h4>
-                           <div className="seemore_bt"><a href="#">See More</a></div>
+                           <div className="seemore_bt"><Link href="#">See More</Link></div>
                         </div>
                         <div className="col">
                            <div className="service_box">
                               <div className="breakfast_img"><img src={alcoholImg}/></div>
                            </div>
                            <h4 className="breakfast_text">Alcohol</h4>
-                           <div className="seemore_bt"><a href="#">See More</a></div>
+                           <div className="seemore_bt"><Link href="#">See More</Link></div>
                         </div>
                         <div className="col">
                            <div className="service_box">
                               <div className="breakfast_img"><img src={diningtableImg}/></div>
                            </div>
                            <h4 className="breakfast_text">Diningtable</h4>
-                           <div className="seemore_bt"><a href="#">See More</a></div>
+                           <div className="seemore_bt"><Link href="#">See More</Link></div>
                         </div>
                      </div>
                   </div>
