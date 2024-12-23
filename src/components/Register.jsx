@@ -39,10 +39,10 @@ useEffect(() => {
         else {
             handleRegister(name_surname, email, phone_number, password);
         }
-        //setName('');
-        //setEmail('');
-        //setNumber('');
-        //setPassword('');
+        setName('');
+        setEmail('');
+        setNumber('');
+        setPassword('');
     };
 
     const fetchAccounts = async () => {

@@ -8,9 +8,9 @@ import Footer from './Footer';
 function LoginPage() {
     const [loginOption, setLoginOption] = useState("email")
     const [formData, setFormData] = useState({
-        email: "egemen@egemen.com",
+        email: "",
         phone: "",
-        password: "123456",
+        password: "",
     })
     const [userLoginResponse, setUserLoginResponse] = useState(null)
     const [loginData, setLoginData] = useState(null);

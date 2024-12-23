@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useState } from "react";
 import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
 
+const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+
 const mapContainerStyle = {
     width: "100%",
     height: "500px",
@@ -23,7 +25,7 @@ function Response({ loginData }) {
     const getAddressFromCoordinates = async (lat, lng) => {
         try {
             const response = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyB8Ic0tcNpIdu3nAGE9shZ4zmRLFlJWvxQ`
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
             );
             const data = await response.json();
 
@@ -73,7 +75,7 @@ function Response({ loginData }) {
     return (
         <div>
             <h1 style={{ color: 'white' }}>SELECT ADDRESS</h1>
-            <APIProvider apiKey={"AIzaSyB8Ic0tcNpIdu3nAGE9shZ4zmRLFlJWvxQ"}>
+            <APIProvider apiKey={apiKey}>
                 <Map
                     style={mapContainerStyle}
                     defaultZoom={6}
