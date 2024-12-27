@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Banner from './Banner'
 import Service from './Service'
-import Blog from './Blog'
+import Blog from './Restaurants'
 import Shop from './Shop'
 import Testimonial from './Testimonial'
 import Contact from './Contact'

@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import AccountsContext from '../context/account';
 import Register from './Register';
 
-function AccountShow({ account, onDelete, onUpdate }) {
+function AccountShow({ account }) {
+  const { /*deleteAccountById,*/ editAccountById } = useContext(AccountsContext);
   const [showEdit, setShowEdit] = useState(false)
 
   const handleDeleteClick = () => {
-    onDelete(account.id)
+    //deleteAccountById(account.id)
   }
 
   const handleEditClick = () => {
@@ -14,7 +16,7 @@ function AccountShow({ account, onDelete, onUpdate }) {
 
   const handleSubmit = (id, updatedName, updatedEmail, updatedNumber, updatedPassword) => {
     setShowEdit(false)
-    onUpdate(id, updatedName, updatedEmail, updatedNumber, updatedPassword)
+    editAccountById(id, updatedName, updatedEmail, updatedNumber, updatedPassword)
   }
 
   return (

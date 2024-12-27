@@ -14,7 +14,7 @@ function Banner() {
                      <li><NavLink to="/">Home</NavLink></li>
                      <li><NavLink to="/service">Services</NavLink></li>
                      <li><NavLink to="/about">About</NavLink></li>
-                     <li><NavLink to="/blog">Blog</NavLink></li>
+                     <li><NavLink to="/restaurants">Restaurants</NavLink></li>
                      <li><NavLink to="/shop">Shop</NavLink></li>
                      <li><NavLink to="/contact">Contacts</NavLink></li>
                   </ul>
@@ -126,12 +126,12 @@ function Banner() {
                         </div>
                      </div>
                   </div>
-                  <Link className="carousel-control-prev" to="#main_slider" role="button" data-slide="prev">
+                  <a className="carousel-control-prev" href="#main_slider" role="button" data-slide="prev">
                   <i className="fa fa-angle-left"></i>
-                  </Link>
-                  <Link className="carousel-control-next" to="#main_slider" role="button" data-slide="next">
+                  </a>
+                  <a className="carousel-control-next" href="#main_slider" role="button" data-slide="next">
                   <i className="fa fa-angle-right"></i>
-                  </Link>
+                  </a>
                </div>
       </div>
    )

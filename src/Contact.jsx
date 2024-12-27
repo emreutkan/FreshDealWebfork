@@ -16,7 +16,7 @@ function Contact() {
                                  <input type="text" className="mail_text" placeholder="Phone Number" name="Phone Number"/> 
                                  <input type="text" className="mail_text" placeholder="Email" name="Email"/>
                                  <textarea className="message-bt" placeholder="Message" rows="5" id="comment" name="Message"></textarea>
-                                 <div className="send_bt"><Link href="#">SEND</Link></div>
+                                 <div className="send_bt"><a href="#">SEND</a></div>
                               </div>
                            </form>
                         </div>

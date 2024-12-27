@@ -1,14 +1,14 @@
 import Banner from "./Banner";
-import Blog from "./Blog";
+import Restaurant from "./Restaurants";
 import Footer from "./Footer";
 
-function BlogPage() {
+function RestaurantsPage() {
     return (
         <>
             <div class="container-fluid">
                 <div class="layout_main">
                     <Banner />
-                    <Blog />
+                    <Restaurant />
                     <Footer />
                 </div>
             </div>
@@ -16,4 +16,4 @@ function BlogPage() {
     );
 }
 
-export default BlogPage;
+export default RestaurantsPage;
