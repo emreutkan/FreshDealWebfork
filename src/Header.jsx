@@ -24,7 +24,7 @@ function Header() {
                      <Link to="/">Home</Link>
                      <Link to="/service">Services</Link>
                      <Link to="/about">About</Link>
-                     <Link to="/blog">Blog</Link>
+                     <Link to="/restaurants">Restaurants</Link>
                      <Link to="/shop">Shop</Link>
                      <Link to="/contact">Contacts</Link>
                   </div>

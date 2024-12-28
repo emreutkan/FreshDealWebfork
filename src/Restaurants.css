@@ -1,9 +1,9 @@
-.blog_section {
+.restaurant_section {
     width: 100%;
     float: left;
 }
 
-.blog_taital {
+.restaurant_taital {
     width: 100%;
     float: left;
     font-size: 50px;
@@ -11,7 +11,7 @@
     font-weight: 800;
 }
 
-.blog_section_2 {
+.restaurant_section_2 {
     width: 100%;
     float: left;
     background-image: url(./assets/about-bg.png);
@@ -21,13 +21,13 @@
     background-repeat: no-repeat;
 }
 
-.blog_taital_main {
+.restaurant_taital_main {
     width: 100%;
     float: left;
     padding-top: 40px;
 }
 
-.blog_text {
+.restaurant_text {
     width: 100%;
     float: left;
     font-size: 30px;
@@ -66,7 +66,7 @@
     background-color: #ff9800;
 }
 
-.blog_img img {
+.restaurant_img img {
     width: 100%;
     margin-bottom: 20px;
 }

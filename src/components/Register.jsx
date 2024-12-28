@@ -1,19 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import AccountsContext from '../context/account';
 import './Register.css'
 import AccountList from './AccountList';
-import axios from 'axios';
 
-function Register({ account, accountFormUpdate, onUpdate/*, onDelete*/ }) {
+function Register({ account, accountFormUpdate, onUpdate }) {
     const [name_surname, setName] = useState(account ? account.name_surname : '');
     const [email, setEmail] = useState(account ? account.email : '');
     const [phone_number, setNumber] = useState(account ? account.phone_number : '');
     const [password, setPassword] = useState(account ? account.password : '');
 
-    const [accounts, setAccounts] = useState([])
-
-useEffect(() => {
-    fetchAccounts();
-  }, [])
+    const { handleRegister, fetchAccounts } = useContext(AccountsContext);
+    useEffect(() => {
+        fetchAccounts();
+    }, [])
 
     const handleNameChange = (event) => {
         setName(event.target.value);
@@ -44,44 +43,6 @@ useEffect(() => {
         setNumber('');
         setPassword('');
     };
-
-    const fetchAccounts = async () => {
-        const response = await axios.get('https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/register');
-        debugger;//database denemesi
-        setAccounts(response.data);
-      }
-
-    const handleRegister = async (name_surname, email, phone_number, password) => {
-try {
-    const response = await axios.post('https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/register', {
-        name_surname,
-        email,
-        phone_number,
-        password,
-      })
-      console.log(response)
-      const registeredAccounts = [...accounts, response.data];
-      setAccounts(registeredAccounts);
-} catch(err) {
-    console.log(err.message)
-} 
-      }
-
-    const editAccountById = (id, updatedName, updatedEmail, updatedNumber, updatedPassword) => {
-        const updatedAccount = accounts.map((account) => {
-          if (account.id === id) {
-            return {
-              id,
-              name_surname: updatedName,
-              email: updatedEmail,
-              phone_number: updatedNumber,
-              password: updatedPassword,
-            };
-          }
-          return account;
-        })
-        setAccounts(updatedAccount)
-      }
 
     return (
     <>
@@ -118,7 +79,7 @@ try {
             </div >
         )
     }
-    <AccountList accounts={accounts} /*onDelete={onDelete}*/ onUpdate={editAccountById} />
+    <AccountList />
     </>
     );
 }

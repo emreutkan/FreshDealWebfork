@@ -9,37 +9,28 @@ import ShopPage from './ShopPage'
 import ContactPage from './ContactPage'
 import Register from './components/Register'
 import { Routes, Route } from 'react-router'
-import BlogPage from './BlogPage'
+import RestaurantsPage from './RestaurantsPage'
 import ErrorPage from './ErrorPage'
 
 function App() {
 
-  /*const deleteAccountById = (id) => {
-    const response = await axios.delete('https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/register');
-    const afterDeletingAccount = accounts.filter((account) => {
-      return account.id !== id;
-    })
-    setAccounts(afterDeletingAccount)
-  }*/
-
-
   return (
     <>
-<Header />
+    <Header />
       
       <Routes>
         <Route path='/' element={<Home />}/>
         <Route path='/service' element={<ServicePage />}/>
         <Route path='/about' element={<AboutPage />}/>
-        <Route path='/blog' element={<BlogPage />}/>
+        <Route path='/restaurants' element={<RestaurantsPage />}/>
         <Route path='/shop' element={<ShopPage />}/>
         <Route path='/contact' element={<ContactPage />}/>
         <Route path='/login' element={<LoginPage />}/>
-        <Route path='/register' element={<Register /*onDelete={deleteAccountById}*/ />}/>
+        <Route path='/register' element={<Register />}/>
         <Route path='*' element={<ErrorPage />}/>
       </Routes>
 
-      <Copyright />
+    <Copyright />
     </>
   )
 }
