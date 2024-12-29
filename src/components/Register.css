@@ -32,3 +32,13 @@
 .update-button {
     background-color: blueviolet;
 }
+
+.input-error {
+    border-color: #fc8181;
+}
+
+.error {
+    color: #fc8181;
+    font-size: 12px;
+    text-align: left;
+}
