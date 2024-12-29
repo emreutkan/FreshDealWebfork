@@ -20,7 +20,7 @@ function Header() {
             <div className="container">
                <nav className="navbar navbar-light bg-light justify-content-between">
                   <div id="mySidenav" className="sidenav">
-                     <Link to="javascript:void(0)" className="closebtn" onclick={closeNav}>&times;</Link>
+                     <Link to="javascript:void(0)" className="closebtn" onClick={closeNav}>&times;</Link>
                      <Link to="/">Home</Link>
                      <Link to="/service">Services</Link>
                      <Link to="/about">About</Link>

@@ -56,7 +56,7 @@
     margin-top: 30px;
 }
 
-.send_bt a {
+.send_bt div {
     width: 100%;
     float: left;
     background-color: #8eb50b;
@@ -67,7 +67,7 @@
     font-weight: bold;
 }
 
-.send_bt a:hover {
+.send_bt div:hover {
     background-color: #ff9800;
     color: #fefeff;
 }
