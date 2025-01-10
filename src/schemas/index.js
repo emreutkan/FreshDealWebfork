@@ -13,7 +13,7 @@ export const registerSchema = yup.object().shape({
 
 export const loginSchema = yup.object().shape({
     email: yup.string().email('Geçerli bir email giriniz'),//.required('Email girmek zorunludur'),//req
-    phone: yup.number().positive('Pozitif bir değer giriniz').integer('Tam sayı giriniz'),//.required(''),//req
+    phone: yup.number().integer('Tam sayı giriniz'),//.required(''),//req
     password: yup.string().required('Şifrenizi giriniz'),
 })
 

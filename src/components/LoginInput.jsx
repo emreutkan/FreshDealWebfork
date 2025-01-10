@@ -7,6 +7,13 @@ function LoginInput({ label, ...props }) {
   return (
     <>
       <label>{label}</label>
+      {props.type === "tel" && (
+        <select>
+        <option value="+1">+1</option>
+        <option value="+90">+90</option>
+        <option value="+44">+44</option>
+        </select>)
+      }
       <input
         {...field}
         {...props}

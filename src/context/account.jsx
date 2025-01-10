@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const AccountsContext = createContext();
 
-function Provider({ children }) {
+function AccountProvider({ children }) {
 const [accounts, setAccounts] = useState([])
 
 const handleRegister = async (name_surname, email, phone_number, password) => {
@@ -68,5 +68,5 @@ const handleRegister = async (name_surname, email, phone_number, password) => {
   );
 }
 
-export { Provider };
+export { AccountProvider };
 export default AccountsContext;
