@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Form, Formik } from 'formik';
 import './LoginPage.css'
 import axios from 'axios';
 import Response from './components/Response';
-import Banner from './Banner';
-import Footer from './Footer';
 import { loginSchema } from './schemas';
 import LoginInput from './components/LoginInput';
+import AuthContext from './context/AuthContext';
 
-function LoginPage() {
-
+function LoginPage({ openPopup, closePopup }) {
+    const { login } = useContext(AuthContext);
 
     /*const { values, errors, isSubmitting, handleChange, handleSubmit } = useFormik({
         initialValues: {
@@ -58,6 +57,7 @@ function LoginPage() {
             password_login,
         });
         console.log(response.data)
+        if (response.data.success === true) login(response.data.token);
         return response.data;
     }
 
@@ -80,8 +80,9 @@ function LoginPage() {
 
     return (
         <>
-            <Banner />
             <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
+                <h6>Login</h6>
+
                 <div style={{ marginBottom: "20px" }}>
                     <button onClick={() => setLoginOption("email")} style={{
                         marginRight: "10px",
@@ -127,39 +128,39 @@ function LoginPage() {
                             {loginOption === "email" ? (
                                 <div style={{ marginBottom: "15px" }}>
                                     <LoginInput
-                                    label="E-mail:"
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    placeholder="Name"
-                                    required
-                                    style={{ width: "100%", padding: "10px", marginTop: "5px" }}
-                                 />
+                                        label="E-mail:"
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        placeholder="Email"
+                                        required
+                                        style={{ width: "100%", padding: "10px", marginTop: "5px" }}
+                                    />
                                 </div>
                             ) : (
                                 <div style={{ marginBottom: "15px" }}>
                                     <LoginInput
-                                    label="Phone Number:"
-                                    id="phone"
-                                    name="phone"
-                                    type="tel"
-                                    placeholder="Name"
-                                    required
-                                    style={{ width: "100%", padding: "10px", marginTop: "5px" }}
-                                 />
+                                        label="Phone Number:"
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        placeholder="Mobile Phone"
+                                        required
+                                        style={{ width: "100%", padding: "10px", marginTop: "5px" }}
+                                    />
                                 </div>
                             )}
 
                             <div>
-                            <LoginInput
+                                <LoginInput
                                     label="Password:"
                                     id="password"
                                     name="password"
                                     type="password"
-                                    placeholder="Name"
+                                    placeholder="Password"
                                     required
                                     style={{ width: "100%", padding: "10px", marginTop: "5px" }}
-                                 />
+                                />
                             </div>
 
                             <button disabled={isSubmitting} type='submit' style={{
@@ -170,14 +171,17 @@ function LoginPage() {
                                 borderRadius: "5px",
                                 cursor: "pointer",
                             }}>
-                                Login
+                                {loginOption === "email" ? "Continue with e-mail" : "Continue with phone number"}
                             </button>
                         </Form>
                     )}
                 </Formik>
+
+                <div >Still haven't signed up?&nbsp;
+                    <button onClick={() => {closePopup(); openPopup("Register");}}>Sign Up</button>
+                </div>
             </div>
             {loginData && <Response loginData={loginData} />}
-            <Footer />
         </>
     );
 }

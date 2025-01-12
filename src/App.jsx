@@ -11,6 +11,7 @@ import Register from './components/Register'
 import { Routes, Route } from 'react-router'
 import RestaurantsPage from './RestaurantsPage'
 import ErrorPage from './ErrorPage'
+import PrivateRoute from './PrivateRoute';
 
 function App() {
 
@@ -20,11 +21,11 @@ function App() {
       
       <Routes>
         <Route path='/' element={<Home />}/>
-        <Route path='/service' element={<ServicePage />}/>
-        <Route path='/about' element={<AboutPage />}/>
-        <Route path='/restaurants' element={<RestaurantsPage />}/>
-        <Route path='/shop' element={<ShopPage />}/>
-        <Route path='/contact' element={<ContactPage />}/>
+        <Route path='/service' element={<PrivateRoute><ServicePage /></PrivateRoute>}/>
+        <Route path='/about' element={<PrivateRoute><AboutPage /></PrivateRoute>}/>
+        <Route path='/restaurants' element={<PrivateRoute><RestaurantsPage /></PrivateRoute>}/>
+        <Route path='/shop' element={<PrivateRoute><ShopPage /></PrivateRoute>}/>
+        <Route path='/contact' element={<PrivateRoute><ContactPage /></PrivateRoute>}/>
         <Route path='/login' element={<LoginPage />}/>
         <Route path='/register' element={<Register />}/>
         <Route path='*' element={<ErrorPage />}/>

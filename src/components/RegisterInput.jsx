@@ -7,6 +7,13 @@ function RegisterInput({ label, ...props }) {
   return (
     <>
       <label className="register-label">{label}</label>
+      {props.id === "phone" && (
+        <select>
+        <option value="+1">+1</option>
+        <option value="+90">+90</option>
+        <option value="+44">+44</option>
+        </select>)
+      }
       <input
         {...field}
         {...props}
