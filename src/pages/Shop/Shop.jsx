@@ -8,6 +8,8 @@ import ScrollToTop from "../ScrollToTop";
 import axios from "axios";
 import AuthContext from "@src/context/AuthContext";
 
+//FRESHDEAL-85 Included in FRESHDEAL-86
+
 function Dropdown() {
     const {authToken} = useContext(AuthContext);
     const api = axios.create({
