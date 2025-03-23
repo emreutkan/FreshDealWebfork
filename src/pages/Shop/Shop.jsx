@@ -13,7 +13,7 @@ import AuthContext from "@src/context/AuthContext";
 function Dropdown() {
     const {authToken} = useContext(AuthContext);
     const api = axios.create({
-        baseURL: 'https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net',
+        baseURL: 'http://127.0.0.1:5000',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
@@ -53,9 +53,10 @@ function Dropdown() {
 
     if (restaurantList.length === 0) {
         getUserData().then((response) => {
+            console.log(response);
             userAddresses = response.user_address_list;
             const primaryAddress = userAddresses.find(address => address.is_primary === true);
-            getRestaurants(primaryAddress.latitude, primaryAddress.longitude, 5000000);
+            getRestaurants(primaryAddress.latitude, primaryAddress.longitude, 50000000);
             setLoaderStatus(false);
         })
     }
@@ -479,7 +480,7 @@ function Dropdown() {
                                                         </span>
                                                             </div>*/}
                                                             <div>
-                                                                <Link to="#!" className="btn btn-primary btn-sm">
+                                                                <Link to={`/Shop/${restaurant.id}`} className="btn btn-primary btn-sm">
                                                                     {/*<svg
                                                                         xmlns="http://www.w3.org/2000/svg"
                                                                         width={16}
