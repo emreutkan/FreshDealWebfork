@@ -9,6 +9,7 @@ import Blog from "./pages/About/Blog";
 import BlogCategory from "./pages/About/BlogCategory";
 import Contact from "./pages/About/Contact";
 import Shop from "./pages/Shop/Shop";
+import ShopDetail from "./pages/Shop/ShopDetail";
 import ShopGridCol3 from "./pages/Shop/ShopGridCol3";
 import ShopListCol from "./pages/Shop/ShopListCol";
 import ShopCart from "./pages/Shop/ShopCart";
@@ -36,6 +37,7 @@ function App() {
                     <Route path="/" element={<Home />} />
                     {/* Shop pages */}
                     <Route path="/Shop" element={<PrivateRoute><Shop /></PrivateRoute>} />
+                    <Route path="/Shop/:id" element={<ShopDetail />} />
                     <Route path="/ShopGridCol3" element={<PrivateRoute><ShopGridCol3 /></PrivateRoute>} />
                     <Route path="/ShopListCol" element={<PrivateRoute><ShopListCol /></PrivateRoute>} />
                     <Route path="/ShopWishList" element={<PrivateRoute><ShopWishList /></PrivateRoute>} />

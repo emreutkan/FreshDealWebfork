@@ -73,7 +73,7 @@ const MyAccountAddress = () => {
   };
 
   const saveAddress = async () => {
-    const response = await axios.post("https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/addresses",
+    const response = await axios.post("http://127.0.0.1:5000/v1/addresses",
         addressData
         , {
           headers: {
