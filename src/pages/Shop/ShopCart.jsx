@@ -7,7 +7,7 @@ import { useCart } from "@src/context/CartContext";
 const ShopCart = () => {
   const { cartItems, removeFromCart } = useCart();
 
-  const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  //const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   // loading
   const [loaderStatus, setLoaderStatus] = useState(true);
