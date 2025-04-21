@@ -20,39 +20,40 @@ const Header = () => {
     const { cartRestaurantId, setCartRestaurantId, addToCart, removeFromCart } = useContext(CartContext);
     const { globalReset } = useContext(GlobalResetContext);
     const [matchedDetails, setMatchedDetails] = useState([]);
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         const fetchListings = async () => {
-          if (!cartRestaurantId) return;
-    
-          try {
-            const response = await axios.get(
-              `https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${cartRestaurantId}&page=1&per_page=10`
-            );
-    
-            const listingsData = response.data.data;
-    
-            const matchedDetails = cartItems.map(cartItem => {
-              const match = listingsData.find(listing => listing.id === cartItem.listing_id);
-              return match
-                ? {
-                    cartItemId: cartItem.id,
-                    listingId: match.id,
-                    image_url: match.image_url,
-                    description: match.description,
-                    pick_up_price: match.pick_up_price
-                  }
-                : null;
-            }).filter(Boolean);
-    console.log(matchedDetails)
-            setMatchedDetails(matchedDetails);
-          } catch (error) {
-            console.error(error);
-          }
+            if (!cartRestaurantId) return;
+
+            try {
+                const response = await axios.get(
+                    `https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${cartRestaurantId}&page=1&per_page=10`
+                );
+
+                const listingsData = response.data.data;
+
+                const matchedDetails = cartItems.map(cartItem => {
+                    const match = listingsData.find(listing => listing.id === cartItem.listing_id);
+                    return match
+                        ? {
+                            cartItemId: cartItem.id,
+                            listingId: match.id,
+                            image_url: match.image_url,
+                            description: match.description,
+                            pick_up_price: match.pick_up_price
+                        }
+                        : null;
+                }).filter(Boolean);
+
+                setMatchedDetails(matchedDetails);
+            } catch (error) {
+                console.error(error);
+            }
         };
-    
+
         fetchListings();
-      }, [cartRestaurantId, cartItems]);
+    }, [cartRestaurantId, cartItems]);
 
 
     const getCartItems = async () => {
@@ -65,9 +66,6 @@ const Header = () => {
             })
         setCartItems(response.data.cart)
     }
-
-    //const get const response = await axios.get(`https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${cartRestaurantId}&page=1&per_page=10`).then(res => console.log("listingler", res.data.data));
-
 
     useEffect(() => {
         getCartItems();
@@ -1099,14 +1097,17 @@ const Header = () => {
                                         <ul className="list-group list-group-flush">
                                             {
                                                 cartItems.map((item, index) => {
-                                                    //console.log(item)
+
                                                     const isFirst = index === 0;
                                                     const isLast = index === cartItems.length - 1;
-                                                    //console.log("yk", item)
+
                                                     const itemClass = `list-group-item py-3 py-lg-0 px-0 ${isFirst ? "border-top" : isLast ? "border-bottom" : ""}`;
                                                     const matchedItem = matchedDetails.find(matched => String(matched.listingId) === String(item.listing_id));
 
-                                                    console.log(matchedItem)
+                                                    item.pick_up_price = matchedItem?.pick_up_price
+                                                    item.image_url = matchedItem?.image_url
+                                                    item.description = matchedItem?.description
+
                                                     return (
                                                         <li key={item.id} className={itemClass}>
                                                             <div className="row row align-items-center">
@@ -1120,8 +1121,8 @@ const Header = () => {
                                                                 <div className="col-5">
                                                                     <h6 className="mb-0">{item.title}</h6>
                                                                     <span>
-                                <small className="text-muted">{matchedItem?.description}</small>
-                              </span>
+                                                                        <small className="text-muted">{matchedItem?.description}</small>
+                                                                    </span>
                                                                     <div className="mt-2 small">
                                                                         {" "}
                                                                         <Link onClick={async () => {
@@ -1159,12 +1160,36 @@ const Header = () => {
                                                                             defaultValue="-"
                                                                             className="button-minus form-control  text-center flex-xl-none w-xl-30 w-xxl-10 px-0  "
                                                                             data-field="quantity"
+                                                                            onClick={async () => {
+                                                                                const input = document.getElementById(item.listing_id);
+
+                                                                                if (parseInt(input.value) - 1 === 0) {
+                                                                                    await removeFromCart(item.listing_id)
+                                                                                    globalReset()
+                                                                                    return
+                                                                                }
+
+                                                                                axios.put("https://freshdealbackend.azurewebsites.net/v1/cart", {
+                                                                                    count: parseInt(input.value) - 1,
+                                                                                    listing_id: item.listing_id
+                                                                                }, {
+                                                                                    headers: {
+                                                                                        'Content-Type': 'application/json',
+                                                                                        Authorization: `Bearer ${authToken}`,
+                                                                                    }
+                                                                                }).then(() => {
+                                                                                    input.value = parseInt(input.value) - 1
+                                                                                }).catch((res) => {
+                                                                                    setErrorMessage(res.response.data.message);
+                                                                                    setTimeout(() => setErrorMessage(""), 4000);
+                                                                                });
+                                                                            }}
                                                                         />
                                                                         <input
                                                                             type="number"
                                                                             step={1}
-                                                                            max={10}
-                                                                            defaultValue={item.count}
+                                                                            id={item.listing_id}
+                                                                            value={item.count}
                                                                             name="quantity"
                                                                             className="quantity-field form-control text-center flex-xl-none w-xl-30 w-xxl-10 px-0 "
                                                                         />
@@ -1173,6 +1198,25 @@ const Header = () => {
                                                                             defaultValue="+"
                                                                             className="button-plus form-control  text-center flex-xl-none w-xl-30  w-xxl-10 px-0  "
                                                                             data-field="quantity"
+                                                                            onClick={async () => {
+                                                                                const input = document.getElementById(item.listing_id);
+
+                                                                                axios.put("https://freshdealbackend.azurewebsites.net/v1/cart", {
+                                                                                    count: parseInt(input.value) + 1,
+                                                                                    listing_id: item.listing_id
+                                                                                }, {
+                                                                                    headers: {
+                                                                                        'Content-Type': 'application/json',
+                                                                                        Authorization: `Bearer ${authToken}`,
+                                                                                    }
+                                                                                }).then(() => {
+                                                                                    input.value = parseInt(input.value) + 1
+                                                                                }).catch((res) => {
+                                                                                    console.log(res)
+                                                                                    setErrorMessage(res.response.data.message);
+                                                                                    setTimeout(() => setErrorMessage(""), 4000);
+                                                                                });
+                                                                            }}
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -1187,13 +1231,13 @@ const Header = () => {
                                         </ul>
                                     </div>
                                     <div className="d-grid">
-                                        {/*<button
-                                        className="btn btn-primary btn-lg d-flex justify-content-between align-items-center"
-                                        type="submit"
-                                    >
-                                        {" "}
-                                        Go to Checkout <span className="fw-bold">${cartItems.reduce((acc, item) => acc + item.pick_up_price * item.quantity, 0)}</span>
-                                    </button>*/}
+                                        <button
+                                            className="btn btn-primary btn-lg d-flex justify-content-between align-items-center"
+                                            type="submit"
+                                        >
+                                            {" "}
+                                            Go to Checkout <span className="fw-bold">${cartItems.reduce((acc, item) => acc + item?.pick_up_price * item.count, 0)}</span>
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -1325,6 +1369,11 @@ const Header = () => {
                     </div>
                 </div>
             </>
+            {errorMessage && (
+                <div className="error-popup">
+                    {errorMessage}
+                </div>
+            )}
         </div >
     );
 };
