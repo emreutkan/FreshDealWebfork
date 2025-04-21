@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import axios from "axios";
-import { useCart } from "@src/context/CartContext";
+import CartContext from "../../context/CartContext";
 
 const ShopDetail = () => {
     const { id } = useParams();
     const [restaurant, setRestaurant] = useState(null);
     const [listings, setListings] = useState([]);
-    const { addToCart } = useCart();
+    const { cartRestaurantId, setCartRestaurantId, addToCart } = useContext(CartContext);
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
-        axios.get(`http://127.0.0.1:5000/v1/restaurants/${id}`).then(res => setRestaurant(res.data));
-        axios.get(`http://127.0.0.1:5000/v1/listings?restaurant_id=${id}&page=1&per_page=10`).then(res => setListings(res.data.data));
+        axios.get(`https://freshdealbackend.azurewebsites.net/v1/restaurants/${id}`).then(res => setRestaurant(res.data));
+        axios.get(`https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${id}&page=1&per_page=10`).then(res => setListings(res.data.data));
     }, [id]);
 
     if (!restaurant) return <div>Loading...</div>;
@@ -35,12 +36,30 @@ const ShopDetail = () => {
                                 <h5 className="card-title">{listing.title}</h5>
                                 <p className="card-text">{listing.description}</p>
                                 <p className="card-text">${listing.pick_up_price}</p>
-                                <button className="btn btn-primary" onClick={() => addToCart(listing)}>Add to Cart</button>
+                                <button
+  className="btn btn-primary"
+  onClick={async () => {
+    try {
+      await addToCart(listing.id, id);
+    } catch (error) {
+      console.error("Hata:", error);
+      setErrorMessage("Cannot add item from a different restaurant. Please reset your cart before adding items from another restaurant.");
+      setTimeout(() => setErrorMessage(""), 4000);
+    }
+  }}
+>
+  Add to Cart
+</button>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+            {errorMessage && (
+                <div className="error-popup">
+                    {errorMessage}
+                </div>
+            )}
         </div>
     )
 }

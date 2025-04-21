@@ -1,43 +1,99 @@
-import React, {useState, useContext, useEffect} from "react";
+import React, { useState, useContext, useEffect } from "react";
 import FreshDealLogo from "../images/FreshDealLogo.png";
 import menubanner from "../images/menu-banner.jpg";
 import { Link } from "react-router";
 import { Field, Form, Formik } from 'formik';
 import LoginInput from "@src/CustomInputs/LoginInput.jsx";
 import RegisterInput from "@src/CustomInputs/RegisterInput.jsx";
-import { registerSchema ,loginSchema } from '@src/schemas/index.js';
+import { registerSchema, loginSchema } from '@src/schemas/index.js';
 import axios from 'axios';
 import AuthContext from '@src/context/AuthContext.jsx';
-import { useCart } from "@src/context/CartContext";
+import CartContext from "@src/context/CartContext";
+import GlobalResetContext from "@src/context/GlobalResetContext";
 
 const Header = () => {
-    const { login } = useContext(AuthContext);
+    const { login, authToken } = useContext(AuthContext);
     const [isOpen, setIsOpen] = useState(false);
     const [popupType, setPopupType] = useState('signup');
     const [loginOption, setLoginOption] = useState("email");
-    const { cartItems, removeFromCart } = useCart();
+    const [cartItems, setCartItems] = useState([]);
+    const { cartRestaurantId, setCartRestaurantId, addToCart, removeFromCart } = useContext(CartContext);
+    const { globalReset } = useContext(GlobalResetContext);
+    const [matchedDetails, setMatchedDetails] = useState([]);
+
+    useEffect(() => {
+        const fetchListings = async () => {
+          if (!cartRestaurantId) return;
+    
+          try {
+            const response = await axios.get(
+              `https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${cartRestaurantId}&page=1&per_page=10`
+            );
+    
+            const listingsData = response.data.data;
+    
+            const matchedDetails = cartItems.map(cartItem => {
+              const match = listingsData.find(listing => listing.id === cartItem.listing_id);
+              return match
+                ? {
+                    cartItemId: cartItem.id,
+                    listingId: match.id,
+                    image_url: match.image_url,
+                    description: match.description,
+                    pick_up_price: match.pick_up_price
+                  }
+                : null;
+            }).filter(Boolean);
+    console.log(matchedDetails)
+            setMatchedDetails(matchedDetails);
+          } catch (error) {
+            console.error(error);
+          }
+        };
+    
+        fetchListings();
+      }, [cartRestaurantId, cartItems]);
+
+
+    const getCartItems = async () => {
+        const response = await axios.get("https://freshdealbackend.azurewebsites.net/v1/cart"
+            , {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${authToken}`,
+                }
+            })
+        setCartItems(response.data.cart)
+    }
+
+    //const get const response = await axios.get(`https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${cartRestaurantId}&page=1&per_page=10`).then(res => console.log("listingler", res.data.data));
+
+
+    useEffect(() => {
+        getCartItems();
+    }, [globalReset]);
 
     const userLogin = async (email, phone_number, password, login_type, password_login) => {
-        const response = await axios.post("http://127.0.0.1:5000/v1/login", {
+        const response = await axios.post("https://freshdealbackend.azurewebsites.net/v1/login", {
             email,
             phone_number,
             password,
             login_type,
             password_login,
         });
-        console.log(response);
+        //console.log(response);
         if (response.data.success === true) login(response.data.token);
     }
 
     const userRegister = async (email, name_surname, password, phone_number, role) => {
-        const response = await axios.post("http://127.0.0.1:5000/v1/register", {
+        const response = await axios.post("https://freshdealbackend.azurewebsites.net/v1/register", {
             email,
             name_surname,
             password,
             phone_number,
             role,
         });
-        console.log(response.data)
+        //console.log(response.data)
         return response.data.message;
     }
 
@@ -57,7 +113,7 @@ const Header = () => {
                                 </div>
                                 <div className="col-md-2 col-xxl-1 text-end d-none d-lg-block" style={{ marginLeft: '20px' }}>
                                     <div className="list-inline">
-                                        <div className="list-inline-item">
+                                        {/*<div className="list-inline-item">
                                             <Link
                                                 to="/ShopWishList"
                                                 className="text-muted position-relative"
@@ -83,13 +139,16 @@ const Header = () => {
                           </span>
                         </span>
                                             </Link>
-                                        </div>
+                                        </div>*/}
                                         <div className="list-inline-item">
                                             <Link
-                                                to="#!"
+                                                to={authToken ? "/MyAccountSetting" : "#!"}
                                                 className="text-muted"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#userModal"
+
+                                                {...(!authToken && {
+                                                    "data-bs-toggle": "modal",
+                                                    "data-bs-target": "#userModal",
+                                                })}
                                             >
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -108,39 +167,35 @@ const Header = () => {
                                                 </svg>
                                             </Link>
                                         </div>
-                                        <div className="list-inline-item">
-                                            <Link
-                                                className="text-muted position-relative "
-                                                data-bs-toggle="offcanvas"
-                                                data-bs-target="#offcanvasRight"
-                                                to="#offcanvasExample"
-                                                role="button"
-                                                aria-controls="offcanvasRight"
-                                            >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width={20}
-                                                    height={20}
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth={2}
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    className="feather feather-shopping-bag"
+                                        {authToken && (
+                                            <div className="list-inline-item">
+                                                <Link
+                                                    className="text-muted position-relative "
+                                                    data-bs-toggle="offcanvas"
+                                                    data-bs-target="#offcanvasRight"
+                                                    to="#offcanvasExample"
+                                                    role="button"
+                                                    aria-controls="offcanvasRight"
                                                 >
-                                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                                                    <line x1={3} y1={6} x2={21} y2={6} />
-                                                    <path d="M16 10a4 4 0 0 1-8 0" />
-                                                </svg>
-                                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                          1
-                          <span className="visually-hidden">
-                            unread messages
-                          </span>
-                        </span>
-                                            </Link>
-                                        </div>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        width={20}
+                                                        height={20}
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        strokeWidth={2}
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        className="feather feather-shopping-bag"
+                                                    >
+                                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                                        <line x1={3} y1={6} x2={21} y2={6} />
+                                                        <path d="M16 10a4 4 0 0 1-8 0" />
+                                                    </svg>
+                                                </Link>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -180,8 +235,8 @@ const Header = () => {
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                         </svg>
                                         <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                      5<span className="visually-hidden">unread messages</span>
-                    </span>
+                                            5<span className="visually-hidden">unread messages</span>
+                                        </span>
                                     </Link>
                                 </div>
                                 <div className="list-inline-item">
@@ -234,8 +289,8 @@ const Header = () => {
                                             <path d="M16 10a4 4 0 0 1-8 0" />
                                         </svg>
                                         <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                      1<span className="visually-hidden">unread messages</span>
-                    </span>
+                                            1<span className="visually-hidden">unread messages</span>
+                                        </span>
                                     </Link>
                                 </div>
                             </div>
@@ -291,25 +346,25 @@ const Header = () => {
                                         aria-haspopup="true"
                                         aria-expanded="false"
                                     >
-                <span className="me-1">
-                  <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="feather feather-grid"
-                  >
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                  </svg>
-                </span>{" "}
+                                        <span className="me-1">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="1.2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="feather feather-grid"
+                                            >
+                                                <rect x="3" y="3" width="7" height="7"></rect>
+                                                <rect x="14" y="3" width="7" height="7"></rect>
+                                                <rect x="14" y="14" width="7" height="7"></rect>
+                                                <rect x="3" y="14" width="7" height="7"></rect>
+                                            </svg>
+                                        </span>{" "}
                                         All Departments
                                     </Link>
                                     <div
@@ -644,268 +699,96 @@ const Header = () => {
             <>
                 <div>
                     {/* Modal */}
-                    <div
-                        className="modal fade"
-                        id="userModal"
-                        tabIndex={-1}
-                        aria-labelledby="userModalLabel"
-                        aria-hidden="true"
-                    >
-                        <div className="modal-dialog modal-dialog-centered">
-                            {popupType === "signup" ? (
-                                <div className="modal-content p-4">
-                                    <div className="modal-header border-0">
-                                        <h5 className="modal-title fs-3 fw-bold" id="userModalLabel">
-                                            Sign Up
-                                        </h5>
-                                        <button
-                                            type="button"
-                                            className="btn-close"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close"
-                                        />
-                                    </div>
-                                    <div className="modal-body">
-                                        <Formik
-                                            initialValues={{
-                                                registerFirstName: '',
-                                                registerLastName: '',
-                                                registerEmail: '',
-                                                registerCountryCode: '+1',
-                                                registerPhone: '',
-                                                registerPassword: '',
-                                                registerConfirmPassword: ''
-                                            }}
-                                            onSubmit={(values, actions) => {
-                                                    userRegister(values.registerEmail, `${values.registerFirstName} ${values.registerLastName}`, values.registerPassword, `${values.registerCountryCode}${values.registerPhone}`, "customer") // will change in future versions
-                                                    .then((response) => {
-                                                        console.log(response)
-                                                        actions.setSubmitting(false)
-                                                        actions.resetForm();
-                                                    }).catch((response) => {console.log(response); actions.setSubmitting(false);})
-                                            }}
-                                            validationSchema={registerSchema}
-                                        >
-                                            {({ isSubmitting }) => (
-                                            <Form>
-                                                <div className="row g-3">
-                                                    <div className="col">
-                                                        <RegisterInput
-                                                            type="text"
-                                                            className="form-control"
-                                                            id="registerFirstName"
-                                                            name="registerFirstName"
-                                                            placeholder="First name"
-                                                            aria-label="First name"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="col">
-                                                        <RegisterInput
-                                                            type="text"
-                                                            className="form-control"
-                                                            id="registerLastName"
-                                                            name="registerLastName"
-                                                            placeholder="Last name"
-                                                            aria-label="Last name"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="col-12">
-                                                        <RegisterInput
-                                                            type="email"
-                                                            className="form-control"
-                                                            id="registerEmail"
-                                                            name="registerEmail"
-                                                            placeholder="E-mail"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="col-12">
-                                                        <Field id="registerCountryCode" name="registerCountryCode">
-                                                            {({ field, form }) => {
 
-                                                                const handleSelect = (value) => {
-                                                                    form.setFieldValue("registerCountryCode", value);
-                                                                };
+                    {authToken ? (
+                        <div>
 
-                                                                return (
-                                                                    <div>
-                                                                        <div className="dmenu dropdown">
-                                                                            <Link
-                                                                                className="nav-link dropdown-toggle"
-                                                                                onClick={() => event.preventDefault()}
-                                                                                id="countryCodeDropdown"
-                                                                                role="button"
-                                                                                data-toggle="dropdown"
-                                                                                aria-haspopup="true"
-                                                                                aria-expanded="false"
-                                                                            >
-                                                                                {field.value}
-                                                                            </Link>
-                                                                            <ul
-                                                                                className="dropdown-menu sm-menu"
-                                                                                aria-labelledby="countryCodeDropdown"
-                                                                            >
-                                                                                <li className="dropdown-item"
-                                                                                    onClick={() => handleSelect("+1")}>
-                                                                                    +1
-                                                                                </li>
-                                                                                <li className="dropdown-item"
-                                                                                    onClick={() => handleSelect("+90")}>
-                                                                                    +90
-                                                                                </li>
-                                                                                <li className="dropdown-item"
-                                                                                    onClick={() => handleSelect("+44")}>
-                                                                                    +44
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            }}
-                                                        </Field>
-                                                        <RegisterInput
-                                                            type="tel"
-                                                            className="form-control"
-                                                            id="registerPhone"
-                                                            name="registerPhone"
-                                                            placeholder="Mobile Phone"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="col-12">
-                                                        <RegisterInput
-                                                            type="password"
-                                                            className="form-control"
-                                                            id="registerPassword"
-                                                            name="registerPassword"
-                                                            placeholder="Password"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="col-12">
-                                                        <RegisterInput
-                                                            type="password"
-                                                            className="form-control"
-                                                            id="registerConfirmPassword"
-                                                            name="registerConfirmPassword"
-                                                            placeholder="Confirm Password"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="col-12 d-grid">
-                                                        {" "}
-                                                        <button disabled={isSubmitting} type="submit" className="btn btn-primary">
-                                                            Sign Up
-                                                        </button>
-                                                    </div>
-                                                    <p>
-                                                        <small className="form-text">
-                                                            By signing up, you agree to our{" "}
-                                                            <Link to="#!">Terms of Service</Link> &amp;{" "}
-                                                            <Link to="#!">Privacy Policy</Link>
-                                                        </small>
-                                                    </p>
-                                                </div>
-                                            </Form>
-                                            )}
-                                        </Formik>
-                                    </div>
-                                    <div className="modal-footer border-0 justify-content-center">
-                                        Already have an account? <Link onClick={() => {
-                                        event.preventDefault();
-                                        setPopupType("signin");
-                                    }}>Sign in</Link>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="modal-content p-4">
-                                    <div className="modal-header border-0">
-                                        <h5 className="modal-title fs-3 fw-bold" id="userModalLabel">
-                                            Sign In
-                                        </h5>
-                                        <button
-                                            type="button"
-                                            className="btn-close"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close"
-                                        />
-                                    </div>
-                                    <div className="modal-body">
-                                        <div style={{
-                                            textAlign: "center",
-                                            marginBottom: "10px",
-                                        }}>
-                                            <button onClick={() => setLoginOption("email")} style={{
-                                                marginRight: "10px",
-                                                padding: "10px",
-                                                backgroundColor: loginOption === "email" ? "#099309" : "#f0f0f0",
-                                                color: loginOption === "email" ? "white" : "black",
-                                                border: "none",
-                                                borderRadius: "5px",
-                                                cursor: "pointer",
-                                            }}>
-                                                Email Login
-                                            </button>
-                                            <button onClick={() => setLoginOption("phone_number")} style={{
-                                                padding: "10px",
-                                                backgroundColor: loginOption === "phone_number" ? "#099309" : "#f0f0f0",
-                                                color: loginOption === "phone_number" ? "white" : "black",
-                                                border: "none",
-                                                borderRadius: "5px",
-                                                cursor: "pointer",
-                                            }}>
-                                                Phone Login
-                                            </button>
+                        </div>
+                    ) : (
+                        <div
+                            className="modal fade"
+                            id="userModal"
+                            tabIndex={-1}
+                            aria-labelledby="userModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div className="modal-dialog modal-dialog-centered">
+                                {popupType === "signup" ? (
+                                    <div className="modal-content p-4">
+                                        <div className="modal-header border-0">
+                                            <h5 className="modal-title fs-3 fw-bold" id="userModalLabel">
+                                                Sign Up
+                                            </h5>
+                                            <button
+                                                type="button"
+                                                className="btn-close"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close"
+                                            />
                                         </div>
-                                        <Formik
-                                            initialValues={{
-                                                email: "",
-                                                countryCode: '+1',
-                                                phone: "",
-                                                password: "",
-                                            }}
-                                            onSubmit={(values, actions) => {
-                                                if (loginOption === "email") {
-                                                    userLogin(values.email, '', values.password, loginOption, true) // will change in future versions
-                                                        .then(() => {
-                                                            localStorage.getItem("authToken") ? actions.resetForm() : actions.setFieldValue("password", "");
+                                        <div className="modal-body">
+                                            <Formik
+                                                initialValues={{
+                                                    registerFirstName: '',
+                                                    registerLastName: '',
+                                                    registerEmail: '',
+                                                    registerCountryCode: '+1',
+                                                    registerPhone: '',
+                                                    registerPassword: '',
+                                                    registerConfirmPassword: ''
+                                                }}
+                                                onSubmit={(values, actions) => {
+                                                    userRegister(values.registerEmail, `${values.registerFirstName} ${values.registerLastName}`, values.registerPassword, `${values.registerCountryCode}${values.registerPhone}`, "customer") // will change in future versions
+                                                        .then((response) => {
+                                                            console.log(response)
                                                             actions.setSubmitting(false)
-                                                        })
-                                                        .catch(() => {actions.setFieldValue("password", ""); actions.setSubmitting(false);})
-                                                } else {
-                                                    userLogin('', `${values.countryCode}${values.phone}`, values.password, loginOption, true) // will change in future versions
-                                                        .then(() => {
-                                                            localStorage.getItem("authToken") ? actions.resetForm() : actions.setFieldValue("password", "");
-                                                            actions.setSubmitting(false)
-                                                        })
-                                                        .catch(() => {actions.setFieldValue("password", ""); actions.setSubmitting(false);})
-                                                }
-                                            }}
-                                            validationSchema={loginSchema}
-                                        >
-                                            {({ isSubmitting }) => (
-                                                <Form>
-                                                    <div className="row g-3">
-                                                        <div className="col-12">
-                                                            {loginOption === "email" ? (
-                                                                <LoginInput
-                                                                    id="email"
-                                                                    name="email"
+                                                            actions.resetForm();
+                                                        }).catch((response) => { console.log(response); actions.setSubmitting(false); })
+                                                }}
+                                                validationSchema={registerSchema}
+                                            >
+                                                {({ isSubmitting }) => (
+                                                    <Form>
+                                                        <div className="row g-3">
+                                                            <div className="col">
+                                                                <RegisterInput
+                                                                    type="text"
+                                                                    className="form-control"
+                                                                    id="registerFirstName"
+                                                                    name="registerFirstName"
+                                                                    placeholder="First name"
+                                                                    aria-label="First name"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="col">
+                                                                <RegisterInput
+                                                                    type="text"
+                                                                    className="form-control"
+                                                                    id="registerLastName"
+                                                                    name="registerLastName"
+                                                                    placeholder="Last name"
+                                                                    aria-label="Last name"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="col-12">
+                                                                <RegisterInput
                                                                     type="email"
                                                                     className="form-control"
+                                                                    id="registerEmail"
+                                                                    name="registerEmail"
                                                                     placeholder="E-mail"
                                                                     required
                                                                 />
-                                                            ) : (
-                                                                <>
-                                                                    <Field id="countryCode" name="countryCode">
-                                                                        {({ field, form }) => {
+                                                            </div>
+                                                            <div className="col-12">
+                                                                <Field id="registerCountryCode" name="registerCountryCode">
+                                                                    {({ field, form }) => {
 
-                                                                            const handleSelect = (value) => {
-                                                                                form.setFieldValue("countryCode", value);
-                                                                            };
+                                                                        const handleSelect = (value) => {
+                                                                            form.setFieldValue("registerCountryCode", value);
+                                                                        };
 
                                                                         return (
                                                                             <div>
@@ -943,70 +826,250 @@ const Header = () => {
                                                                         );
                                                                     }}
                                                                 </Field>
-                                                                <LoginInput
-                                                                    id="phone"
-                                                                    name="phone"
+                                                                <RegisterInput
                                                                     type="tel"
                                                                     className="form-control"
+                                                                    id="registerPhone"
+                                                                    name="registerPhone"
                                                                     placeholder="Mobile Phone"
                                                                     required
                                                                 />
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                        <div className="col-12">
-                                                            <LoginInput
-                                                                id="password"
-                                                                name="password"
-                                                                type="password"
-                                                                className="form-control"
-                                                                placeholder="Password"
-                                                                required
-                                                            />
-                                                        </div>
-                                                        <div className="d-flex justify-content-between">
-                                                            <div className="form-check">
-                                                                <input
-                                                                    className="form-check-input"
-                                                                    type="checkbox"
-                                                                    defaultValue
-                                                                    id="flexCheckDefault"
+                                                            </div>
+                                                            <div className="col-12">
+                                                                <RegisterInput
+                                                                    type="password"
+                                                                    className="form-control"
+                                                                    id="registerPassword"
+                                                                    name="registerPassword"
+                                                                    placeholder="Password"
+                                                                    required
                                                                 />
-                                                                {" "}
-                                                                <label
-                                                                    className="form-check-label"
-                                                                    htmlFor="flexCheckDefault"
-                                                                >
-                                                                    Remember me
-                                                                </label>
                                                             </div>
-                                                            <div>
+                                                            <div className="col-12">
+                                                                <RegisterInput
+                                                                    type="password"
+                                                                    className="form-control"
+                                                                    id="registerConfirmPassword"
+                                                                    name="registerConfirmPassword"
+                                                                    placeholder="Confirm Password"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="col-12 d-grid">
                                                                 {" "}
-                                                                Forgot password?{" "}
-                                                                <Link to="/MyAccountForgetPassword">Reset it</Link>
+                                                                <button disabled={isSubmitting} type="submit" className="btn btn-primary">
+                                                                    Sign Up
+                                                                </button>
+                                                            </div>
+                                                            <p>
+                                                                <small className="form-text">
+                                                                    By signing up, you agree to our{" "}
+                                                                    <Link to="#!">Terms of Service</Link> &amp;{" "}
+                                                                    <Link to="#!">Privacy Policy</Link>
+                                                                </small>
+                                                            </p>
+                                                        </div>
+                                                    </Form>
+                                                )}
+                                            </Formik>
+                                        </div>
+                                        <div className="modal-footer border-0 justify-content-center">
+                                            Already have an account? <Link onClick={() => {
+                                                event.preventDefault();
+                                                setPopupType("signin");
+                                            }}>Sign in</Link>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="modal-content p-4">
+                                        <div className="modal-header border-0">
+                                            <h5 className="modal-title fs-3 fw-bold" id="userModalLabel">
+                                                Sign In
+                                            </h5>
+                                            <button
+                                                type="button"
+                                                className="btn-close"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close"
+                                            />
+                                        </div>
+                                        <div className="modal-body">
+                                            <div style={{
+                                                textAlign: "center",
+                                                marginBottom: "10px",
+                                            }}>
+                                                <button onClick={() => setLoginOption("email")} style={{
+                                                    marginRight: "10px",
+                                                    padding: "10px",
+                                                    backgroundColor: loginOption === "email" ? "#099309" : "#f0f0f0",
+                                                    color: loginOption === "email" ? "white" : "black",
+                                                    border: "none",
+                                                    borderRadius: "5px",
+                                                    cursor: "pointer",
+                                                }}>
+                                                    Email Login
+                                                </button>
+                                                <button onClick={() => setLoginOption("phone_number")} style={{
+                                                    padding: "10px",
+                                                    backgroundColor: loginOption === "phone_number" ? "#099309" : "#f0f0f0",
+                                                    color: loginOption === "phone_number" ? "white" : "black",
+                                                    border: "none",
+                                                    borderRadius: "5px",
+                                                    cursor: "pointer",
+                                                }}>
+                                                    Phone Login
+                                                </button>
+                                            </div>
+                                            <Formik
+                                                initialValues={{
+                                                    email: "",
+                                                    countryCode: '+1',
+                                                    phone: "",
+                                                    password: "",
+                                                }}
+                                                onSubmit={(values, actions) => {
+                                                    if (loginOption === "email") {
+                                                        userLogin(values.email, '', values.password, loginOption, true) // will change in future versions
+                                                            .then(() => {
+                                                                localStorage.getItem("authToken") ? actions.resetForm() : actions.setFieldValue("password", "");
+                                                                actions.setSubmitting(false)
+                                                            })
+                                                            .catch(() => { actions.setFieldValue("password", ""); actions.setSubmitting(false); })
+                                                    } else {
+                                                        userLogin('', `${values.countryCode}${values.phone}`, values.password, loginOption, true) // will change in future versions
+                                                            .then(() => {
+                                                                localStorage.getItem("authToken") ? actions.resetForm() : actions.setFieldValue("password", "");
+                                                                actions.setSubmitting(false)
+                                                            })
+                                                            .catch(() => { actions.setFieldValue("password", ""); actions.setSubmitting(false); })
+                                                    }
+                                                }}
+                                                validationSchema={loginSchema}
+                                            >
+                                                {({ isSubmitting }) => (
+                                                    <Form>
+                                                        <div className="row g-3">
+                                                            <div className="col-12">
+                                                                {loginOption === "email" ? (
+                                                                    <LoginInput
+                                                                        id="email"
+                                                                        name="email"
+                                                                        type="email"
+                                                                        className="form-control"
+                                                                        placeholder="E-mail"
+                                                                        required
+                                                                    />
+                                                                ) : (
+                                                                    <>
+                                                                        <Field id="countryCode" name="countryCode">
+                                                                            {({ field, form }) => {
+
+                                                                                const handleSelect = (value) => {
+                                                                                    form.setFieldValue("countryCode", value);
+                                                                                };
+
+                                                                                return (
+                                                                                    <div>
+                                                                                        <div className="dmenu dropdown">
+                                                                                            <Link
+                                                                                                className="nav-link dropdown-toggle"
+                                                                                                onClick={() => event.preventDefault()}
+                                                                                                id="countryCodeDropdown"
+                                                                                                role="button"
+                                                                                                data-toggle="dropdown"
+                                                                                                aria-haspopup="true"
+                                                                                                aria-expanded="false"
+                                                                                            >
+                                                                                                {field.value}
+                                                                                            </Link>
+                                                                                            <ul
+                                                                                                className="dropdown-menu sm-menu"
+                                                                                                aria-labelledby="countryCodeDropdown"
+                                                                                            >
+                                                                                                <li className="dropdown-item"
+                                                                                                    onClick={() => handleSelect("+1")}>
+                                                                                                    +1
+                                                                                                </li>
+                                                                                                <li className="dropdown-item"
+                                                                                                    onClick={() => handleSelect("+90")}>
+                                                                                                    +90
+                                                                                                </li>
+                                                                                                <li className="dropdown-item"
+                                                                                                    onClick={() => handleSelect("+44")}>
+                                                                                                    +44
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                );
+                                                                            }}
+                                                                        </Field>
+                                                                        <LoginInput
+                                                                            id="phone"
+                                                                            name="phone"
+                                                                            type="tel"
+                                                                            className="form-control"
+                                                                            placeholder="Mobile Phone"
+                                                                            required
+                                                                        />
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <div className="col-12">
+                                                                <LoginInput
+                                                                    id="password"
+                                                                    name="password"
+                                                                    type="password"
+                                                                    className="form-control"
+                                                                    placeholder="Password"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="d-flex justify-content-between">
+                                                                <div className="form-check">
+                                                                    <input
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        defaultValue
+                                                                        id="flexCheckDefault"
+                                                                    />
+                                                                    {" "}
+                                                                    <label
+                                                                        className="form-check-label"
+                                                                        htmlFor="flexCheckDefault"
+                                                                    >
+                                                                        Remember me
+                                                                    </label>
+                                                                </div>
+                                                                <div>
+                                                                    {" "}
+                                                                    Forgot password?{" "}
+                                                                    <Link to="/MyAccountForgetPassword">Reset it</Link>
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-12 d-grid">
+                                                                {" "}
+                                                                <button disabled={isSubmitting} type='submit' className="btn btn-primary">
+                                                                    {loginOption === "email" ? "Continue with e-mail" : "Continue with phone number"}
+                                                                </button>
                                                             </div>
                                                         </div>
-                                                        <div className="col-12 d-grid">
-                                                            {" "}
-                                                            <button disabled={isSubmitting} type='submit' className="btn btn-primary">
-                                                                {loginOption === "email" ? "Continue with e-mail" : "Continue with phone number"}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </Form>
-                                            )}
-                                        </Formik>
+                                                    </Form>
+                                                )}
+                                            </Formik>
+                                        </div>
+                                        <div className="modal-footer border-0 justify-content-center">
+                                            Don’t have an account? <Link onClick={() => {
+                                                event.preventDefault();
+                                                setPopupType("signup");
+                                            }}>Sign up</Link>
+                                        </div>
                                     </div>
-                                    <div className="modal-footer border-0 justify-content-center">
-                                        Don’t have an account? <Link onClick={() => {
-                                        event.preventDefault();
-                                        setPopupType("signup");
-                                    }}>Sign up</Link>
-                                    </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
+
                     {/* Shop Cart */}
                     <div
                         className="offcanvas offcanvas-end"
@@ -1019,7 +1082,6 @@ const Header = () => {
                                 <h5 id="offcanvasRightLabel" className="mb-0 fs-4">
                                     Shop Cart
                                 </h5>
-                                <small>Location in 382480</small>
                             </div>
                             <button
                                 type="button"
@@ -1029,110 +1091,111 @@ const Header = () => {
                             />
                         </div>
                         <div className="offcanvas-body">
-                            <div className="alert alert-danger" role="alert">
-                                You’ve got FREE delivery. Start checkout now!
-                            </div>
                             {cartItems.length === 0 ? (
-                            <p>Your Cart is Empty.</p>
-                          ) : (
-                            <div>
-                                <div className="py-3">
-                                    <ul className="list-group list-group-flush">
-                                    {cartItems.map((item, index) => {
-                                const isFirst = index === 0;
-                                const isLast = index === cartItems.length - 1;
+                                <p>Your Cart is Empty.</p>
+                            ) : (
+                                <div>
+                                    <div className="py-3">
+                                        <ul className="list-group list-group-flush">
+                                            {
+                                                cartItems.map((item, index) => {
+                                                    //console.log(item)
+                                                    const isFirst = index === 0;
+                                                    const isLast = index === cartItems.length - 1;
+                                                    //console.log("yk", item)
+                                                    const itemClass = `list-group-item py-3 py-lg-0 px-0 ${isFirst ? "border-top" : isLast ? "border-bottom" : ""}`;
+                                                    const matchedItem = matchedDetails.find(matched => String(matched.listingId) === String(item.listing_id));
 
-                                const itemClass = `list-group-item py-3 py-lg-0 px-0 ${isFirst ? "border-top" : isLast ? "border-bottom" : ""
-                                  }`;
-
-                                  return (
-                                    <li key={item.id} className={itemClass}>
-                                            <div className="row row align-items-center">
-                                                <div className="col-2">
-                                                    <img
-                                                        src={item.image_url}
-                                                        alt={item.title}
-                                                        className="img-fluid"
-                                                    />
-                                                </div>
-                                                <div className="col-5">
-                                                    <h6 className="mb-0">{item.title}</h6>
-                                                    <span>
-                        <small className="text-muted">{item.description}</small>
-                      </span>
-                                                    <div className="mt-2 small">
-                                                        {" "}
-                                                        <Link onClick={() => removeFromCart(item.id)} className="text-decoration-none">
-                                                            {" "}
-                                                            <span className="me-1">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width={16}
-                                height={16}
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="feather feather-trash-2"
-                            >
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                              <line x1={10} y1={11} x2={10} y2={17} />
-                              <line x1={14} y1={11} x2={14} y2={17} />
-                            </svg>
-                          </span>
-                                                            Remove
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                                <div className="col-3">
-                                                    <div className="input-group  flex-nowrap justify-content-center  ">
-                                                        <input
-                                                            type="button"
-                                                            defaultValue="-"
-                                                            className="button-minus form-control  text-center flex-xl-none w-xl-30 w-xxl-10 px-0  "
-                                                            data-field="quantity"
-                                                        />
-                                                        <input
-                                                            type="number"
-                                                            step={1}
-                                                            max={10}
-                                                            defaultValue={item.quantity}
-                                                            name="quantity"
-                                                            className="quantity-field form-control text-center flex-xl-none w-xl-30 w-xxl-10 px-0 "
-                                                        />
-                                                        <input
-                                                            type="button"
-                                                            defaultValue="+"
-                                                            className="button-plus form-control  text-center flex-xl-none w-xl-30  w-xxl-10 px-0  "
-                                                            data-field="quantity"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="col-2 text-end">
-                                                    <span className="fw-bold">${item.pick_up_price * item.quantity}</span>
-                                                    {/*<span className="text-decoration-line-through text-muted small">
-                        $45.00
-                      </span>*/}
-                                                </div>
-                                            </div>
-                                        </li>
-                                  );
-})}
-                                    </ul>
-                                </div>
-                                <div className="d-grid">
-                                    <button
+                                                    console.log(matchedItem)
+                                                    return (
+                                                        <li key={item.id} className={itemClass}>
+                                                            <div className="row row align-items-center">
+                                                                <div className="col-2">
+                                                                    <img
+                                                                        src={matchedItem?.image_url}
+                                                                        alt={item.title}
+                                                                        className="img-fluid"
+                                                                    />
+                                                                </div>
+                                                                <div className="col-5">
+                                                                    <h6 className="mb-0">{item.title}</h6>
+                                                                    <span>
+                                <small className="text-muted">{matchedItem?.description}</small>
+                              </span>
+                                                                    <div className="mt-2 small">
+                                                                        {" "}
+                                                                        <Link onClick={async () => {
+                                                                            await removeFromCart(item.listing_id)
+                                                                            globalReset()
+                                                                        }} className="text-decoration-none">
+                                                                            {" "}
+                                                                            <span className="me-1">
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width={16}
+                                                                                    height={16}
+                                                                                    viewBox="0 0 24 24"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    strokeWidth={2}
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    className="feather feather-trash-2"
+                                                                                >
+                                                                                    <polyline points="3 6 5 6 21 6" />
+                                                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                                                    <line x1={10} y1={11} x2={10} y2={17} />
+                                                                                    <line x1={14} y1={11} x2={14} y2={17} />
+                                                                                </svg>
+                                                                            </span>
+                                                                            Remove
+                                                                        </Link>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-3">
+                                                                    <div className="input-group  flex-nowrap justify-content-center  ">
+                                                                        <input
+                                                                            type="button"
+                                                                            defaultValue="-"
+                                                                            className="button-minus form-control  text-center flex-xl-none w-xl-30 w-xxl-10 px-0  "
+                                                                            data-field="quantity"
+                                                                        />
+                                                                        <input
+                                                                            type="number"
+                                                                            step={1}
+                                                                            max={10}
+                                                                            defaultValue={item.count}
+                                                                            name="quantity"
+                                                                            className="quantity-field form-control text-center flex-xl-none w-xl-30 w-xxl-10 px-0 "
+                                                                        />
+                                                                        <input
+                                                                            type="button"
+                                                                            defaultValue="+"
+                                                                            className="button-plus form-control  text-center flex-xl-none w-xl-30  w-xxl-10 px-0  "
+                                                                            data-field="quantity"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-2 text-end">
+                                                                    <span className="fw-bold">${matchedItem?.pick_up_price * item.count}</span>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    );
+                                                })
+                                            }
+                                        </ul>
+                                    </div>
+                                    <div className="d-grid">
+                                        {/*<button
                                         className="btn btn-primary btn-lg d-flex justify-content-between align-items-center"
                                         type="submit"
                                     >
                                         {" "}
                                         Go to Checkout <span className="fw-bold">${cartItems.reduce((acc, item) => acc + item.pick_up_price * item.quantity, 0)}</span>
-                                    </button>
+                                    </button>*/}
+                                    </div>
                                 </div>
-                            </div>
                             )}
                         </div>
                     </div>
