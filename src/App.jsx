@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router";
 import Header from './Component/Header';
@@ -27,42 +27,47 @@ import MyAccountSignIn from "./pages/Accounts/MyAccountSignIn";
 import MyAccountSignUp from "./pages/Accounts/MyAccountSignUp";
 import PrivateRoute from './PrivateRoute';
 import ErrorPage from "@src/pages/ErrorPage";
+import GlobalResetContext from "@src/context/GlobalResetContext";
 
 function App() {
+    const { resetKey } = useContext(GlobalResetContext);
+
     return (
         <div>
             <Router>
-                <Header/>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    {/* Shop pages */}
-                    <Route path="/Shop" element={<PrivateRoute><Shop /></PrivateRoute>} />
-                    <Route path="/Shop/:id" element={<ShopDetail />} />
-                    <Route path="/ShopGridCol3" element={<PrivateRoute><ShopGridCol3 /></PrivateRoute>} />
-                    <Route path="/ShopListCol" element={<PrivateRoute><ShopListCol /></PrivateRoute>} />
-                    <Route path="/ShopWishList" element={<PrivateRoute><ShopWishList /></PrivateRoute>} />
-                    <Route path="/ShopCheckOut" element={<PrivateRoute><ShopCheckOut /></PrivateRoute>} />
-                    <Route path="/ShopCart" element={<PrivateRoute><ShopCart /></PrivateRoute>} />
-                    {/* Store pages */}
-                    <Route path="/StoreList" element={<PrivateRoute><StoreList /></PrivateRoute>} />
-                    <Route path="/SingleShop" element={<PrivateRoute><SingleShop /></PrivateRoute>} />
-                    {/* Accounts pages */}
-                    <Route path="/MyAccountOrder" element={<PrivateRoute><MyAccountOrder /></PrivateRoute>} />
-                    <Route path="/MyAccountSetting" element={<PrivateRoute><MyAccountSetting /></PrivateRoute>} />
-                    <Route path="/MyAcconutNotification" element={<PrivateRoute><MyAcconutNotification /></PrivateRoute>} />
-                    <Route path="/MyAcconutPaymentMethod" element={<PrivateRoute><MyAcconutPaymentMethod /></PrivateRoute>} />
-                    <Route path="/MyAccountAddress" element={<PrivateRoute><MyAccountAddress /></PrivateRoute>} />
-                    <Route path="/MyAccountForgetPassword" element={<MyAccountForgetPassword />} />
-                    <Route path="/MyAccountSignIn" element={<MyAccountSignIn />} />
-                    <Route path="/MyAccountSignUp" element={<MyAccountSignUp />} />
-                    {/* About pages */}
-                    <Route path="/Blog" element={<Blog />} />
-                    <Route path="/BlogCategory" element={<BlogCategory />} />
-                    <Route path="/Contact" element={<Contact />} />
-                    <Route path="/AboutUs" element={<AboutUs />} />
-                    <Route path="*" element={<ErrorPage />} />
-                </Routes>
-                <Footer/>
+                <Header />
+
+                    <Routes key={resetKey}>
+                        <Route path="/" element={<Home />} />
+                        {/* Shop pages */}
+                        <Route path="/Shop" element={<PrivateRoute><Shop /></PrivateRoute>} />
+                        <Route path="/Shop/:id" element={<ShopDetail />} />
+                        <Route path="/ShopGridCol3" element={<PrivateRoute><ShopGridCol3 /></PrivateRoute>} />
+                        <Route path="/ShopListCol" element={<PrivateRoute><ShopListCol /></PrivateRoute>} />
+                        <Route path="/ShopWishList" element={<PrivateRoute><ShopWishList /></PrivateRoute>} />
+                        <Route path="/ShopCheckOut" element={<PrivateRoute><ShopCheckOut /></PrivateRoute>} />
+                        <Route path="/ShopCart" element={<PrivateRoute><ShopCart /></PrivateRoute>} />
+                        {/* Store pages */}
+                        <Route path="/StoreList" element={<PrivateRoute><StoreList /></PrivateRoute>} />
+                        <Route path="/SingleShop" element={<PrivateRoute><SingleShop /></PrivateRoute>} />
+                        {/* Accounts pages */}
+                        <Route path="/MyAccountOrder" element={<PrivateRoute><MyAccountOrder /></PrivateRoute>} />
+                        <Route path="/MyAccountSetting" element={<PrivateRoute><MyAccountSetting /></PrivateRoute>} />
+                        <Route path="/MyAcconutNotification" element={<PrivateRoute><MyAcconutNotification /></PrivateRoute>} />
+                        <Route path="/MyAcconutPaymentMethod" element={<PrivateRoute><MyAcconutPaymentMethod /></PrivateRoute>} />
+                        <Route path="/MyAccountAddress" element={<PrivateRoute><MyAccountAddress /></PrivateRoute>} />
+                        <Route path="/MyAccountForgetPassword" element={<MyAccountForgetPassword />} />
+                        <Route path="/MyAccountSignIn" element={<MyAccountSignIn />} />
+                        <Route path="/MyAccountSignUp" element={<MyAccountSignUp />} />
+                        {/* About pages */}
+                        <Route path="/Blog" element={<Blog />} />
+                        <Route path="/BlogCategory" element={<BlogCategory />} />
+                        <Route path="/Contact" element={<Contact />} />
+                        <Route path="/AboutUs" element={<AboutUs />} />
+                        <Route path="*" element={<ErrorPage />} />
+                    </Routes>
+
+                <Footer />
             </Router>
         </div>
     )

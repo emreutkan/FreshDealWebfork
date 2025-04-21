@@ -1,21 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import axios from "axios";
 import { Link } from "react-router";
 import { MagnifyingGlass } from "react-loader-spinner";
 import ScrollToTop from "../ScrollToTop";
-import { useCart } from "@src/context/CartContext";
+import AuthContext from '@src/context/AuthContext.jsx';
+import CartContext from "@src/context/CartContext";
+import GlobalResetContext from "@src/context/GlobalResetContext";
 
 const ShopCart = () => {
-  const { cartItems, removeFromCart } = useCart();
+  const [cartItems, setCartItems] = useState([]);
+  const { cartRestaurantId, setCartRestaurantId, addToCart, removeFromCart } = useContext(CartContext);
+  const { globalReset } = useContext(GlobalResetContext);
+  const { authToken } = useContext(AuthContext);
 
   //const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   // loading
   const [loaderStatus, setLoaderStatus] = useState(true);
-  useEffect(() => {
-    setTimeout(() => {
-      setLoaderStatus(false);
-    }, 1500);
-  }, []);
+
+  const getCartItems = async () => {
+    const response = await axios.get("https://freshdealbackend.azurewebsites.net/v1/cart"
+        , {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          }
+        })
+        console.log("catirems", response.data.cart)
+        setCartItems(response.data.cart)
+axios.get(`https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${cartRestaurantId}&page=1&per_page=10`).then(res => console.log("listingler", res.data.data));
+}
+
+useEffect(() => {
+    getCartItems();
+    setLoaderStatus(false);
+  }, [globalReset]);
 
   return (
     <div>

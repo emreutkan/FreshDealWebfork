@@ -1,31 +1,93 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import AuthContext from '@src/context/AuthContext.jsx';
+import axios from "axios";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    const [cartItems, setCartItems] = useState([]);
+    const { authToken } = useContext(AuthContext);
+    const [cartItems, setCartItems] = useState([])
+    const [cartRestaurantId, setCartRestaurantId] = useState(0)
 
-    const addToCart = (item) => {
-        setCartItems((prev) => {
-            const existing = prev.find((i) => i.id === item.id);
-            if (existing) {
-                return prev.map((i) =>
-                    i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-                );
+    useEffect(() => {
+      const fetchInitialCart = async () => {
+        if (!authToken) return;
+    
+        try {
+          const response = await axios.get("https://freshdealbackend.azurewebsites.net/v1/cart", {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
             }
-            return [...prev, { ...item, quantity: 1 }];
-        });
+          });
+    
+          const cartData = response.data.cart || [];
+    
+          setCartItems(cartData);
+    
+          if (cartData.length > 0) {
+            setCartRestaurantId(cartData[0].restaurant_id);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    
+      fetchInitialCart();
+    }, [authToken]);
+
+    const returnCartItems = () => {
+        return cartItems
+    }
+
+    /*const getCartItems = async (restaurantId) => {
+        const response = await axios.get("https://freshdealbackend.azurewebsites.net/v1/cart"
+            , {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
+              }
+            })
+            console.log("catirems", response.data.cart)
+            setCartItems(response.data.cart)
+  axios.get(`https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${restaurantId}&page=1&per_page=10`).then(res => console.log("listingler", res.data.data));
+
+    }*/
+
+    const addToCart = async (id, restaurantId) => {
+      console.log("⛳️ CartContext içindeki addToCart çalıştı"); // 🚨
+try {
+  const response = await axios.post("https://freshdealbackend.azurewebsites.net/v1/cart",
+    { listing_id: id, count: 1 }
+    , {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      }
+    })
+      setCartRestaurantId(restaurantId)
+    
+  } catch (e) {
+    console.log(e);
+  }
+
     };
 
-    const removeFromCart = (id) => {
-        setCartItems((prev) => prev.map((item) => item.id === id ? { ...item, quantity: item.quantity - 1 } : item).filter((item) => item.quantity > 0));
+    const removeFromCart = async (id) => {
+        const response = await axios.delete(`https://freshdealbackend.azurewebsites.net/v1/cart/${id}`
+            , {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
+              }
+            })
+            console.log(response)
     };
 
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart }}>
+        <CartContext.Provider value={{ cartRestaurantId, setCartRestaurantId, addToCart, removeFromCart, returnCartItems }}>
             {children}
         </CartContext.Provider>
     );
 }
 
-export const useCart = () => useContext(CartContext);
+export default CartContext;

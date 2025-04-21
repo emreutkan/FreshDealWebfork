@@ -9,7 +9,7 @@ const [accounts, setAccounts] = useState([])
 
 const handleRegister = async (name_surname, email, phone_number, password) => {
   try {
-      const response = await axios.post('https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/register', {
+      const response = await axios.post('https://freshdealbackend.azurewebsites.net/v1/register', {
           name_surname,
           email,
           phone_number,
@@ -24,7 +24,7 @@ const handleRegister = async (name_surname, email, phone_number, password) => {
         }
 
 /*const deleteAccountById = (id) => {
-    const response = await axios.delete('https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/register');
+    const response = await axios.delete('https://freshdealbackend.azurewebsites.net/v1/register');
     const afterDeletingAccount = accounts.filter((account) => {
       return account.id !== id;
     })
@@ -48,7 +48,7 @@ const handleRegister = async (name_surname, email, phone_number, password) => {
     }
 
   const fetchAccounts = async () => {
-    const response = await axios.get('https://freshdealapi-fkfaajfaffh4c0ex.uksouth-01.azurewebsites.net/v1/register');//burasi degisecek
+    const response = await axios.get('https://freshdealbackend.azurewebsites.net/v1/register');//burasi degisecek
     debugger;//database denemesi
     setAccounts(response.data);
   }

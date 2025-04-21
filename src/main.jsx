@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { store } from '../store/store';
 import { Provider } from 'react-redux';
 import { CartProvider } from './context/CartContext';
+import { GlobalResetProvider } from './context/GlobalResetContext';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')).render(
         <AuthProvider>
             <AccountProvider>
               <CartProvider>
-                <App />
+                <GlobalResetProvider>
+                  <App/>
+                </GlobalResetProvider>
               </CartProvider>
             </AccountProvider>
         </AuthProvider>

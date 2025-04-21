@@ -13,7 +13,7 @@ import AuthContext from "@src/context/AuthContext";
 function Dropdown() {
     const {authToken} = useContext(AuthContext);
     const api = axios.create({
-        baseURL: 'http://127.0.0.1:5000',
+        baseURL: 'https://freshdealbackend.azurewebsites.net',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
@@ -22,6 +22,7 @@ function Dropdown() {
 
     const [openDropdowns, setOpenDropdowns] = useState([]);
     const [loaderStatus, setLoaderStatus] = useState(true);
+    const [addressFound, setAddressFound] = useState(true);
     const [restaurantList, setRestaurantList] = useState([]);
     const [userFavorites, setUserFavorites] = useState([]);
     let userAddresses;
@@ -53,10 +54,14 @@ function Dropdown() {
 
     if (restaurantList.length === 0) {
         getUserData().then((response) => {
-            console.log(response);
             userAddresses = response.user_address_list;
-            const primaryAddress = userAddresses.find(address => address.is_primary === true);
-            getRestaurants(primaryAddress.latitude, primaryAddress.longitude, 50000000);
+            if (userAddresses.length !== 0) {
+                const primaryAddress = userAddresses.find(address => address.is_primary === true);
+                getRestaurants(primaryAddress.latitude, primaryAddress.longitude, 10000);
+            }
+            else {
+                setAddressFound(false);
+            }
             setLoaderStatus(false);
         })
     }
@@ -98,7 +103,8 @@ function Dropdown() {
                     />
                 </div>
             ) : (
-                <>
+                addressFound ? (
+                    <>
                     <>
                         <ScrollToTop/>
                     </>
@@ -557,6 +563,11 @@ function Dropdown() {
                         </div>
                     </div>
                 </>
+                ) : (
+                <Link to="/MyAccountAddress" className="me-3">
+                    Please add an address to see nearby restaurants.
+                </Link>
+                )
             )}
         </div>
     )
