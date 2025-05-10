@@ -1,56 +1,54 @@
 import { createContext } from 'react';
 import { useState } from 'react';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import {getUserDataThunk, registerUserThunk} from "@src/redux/thunks/userThunks";
 
 const AccountsContext = createContext();
 
 function AccountProvider({ children }) {
-const [accounts, setAccounts] = useState([])
+  const [accounts, setAccounts] = useState([])
+  const dispatch = useDispatch();
+  useSelector(state => state.user);
+  const handleRegister = async (name_surname, email, phone_number, password) => {
+    try {
+      const result = await dispatch(registerUserThunk({
+        name_surname,
+        email,
+        phone_number,
+        password,
+      }));
 
-const handleRegister = async (name_surname, email, phone_number, password) => {
-  try {
-      const response = await axios.post('https://freshdealbackend.azurewebsites.net/v1/register', {
-          name_surname,
-          email,
-          phone_number,
-          password,
-        })
-        
-        const registeredAccounts = [...accounts, response.data];
-        setAccounts(registeredAccounts);
-  } catch(err) {
+      const registeredAccounts = [...accounts, result.payload];
+      setAccounts(registeredAccounts);
+    } catch(err) {
       console.log(err.message)
-  } 
-        }
-
-/*const deleteAccountById = (id) => {
-    const response = await axios.delete('https://freshdealbackend.azurewebsites.net/v1/register');
-    const afterDeletingAccount = accounts.filter((account) => {
-      return account.id !== id;
-    })
-    setAccounts(afterDeletingAccount)
-  }*/
-
-    const editAccountById = (id, updatedName, updatedEmail, updatedNumber, updatedPassword) => {
-      const updatedAccount = accounts.map((account) => {
-        if (account.id === id) {
-          return {
-            id,
-            name_surname: updatedName,
-            email: updatedEmail,
-            phone_number: updatedNumber,
-            password: updatedPassword,
-          };
-        }
-        return account;
-      })
-      setAccounts(updatedAccount)
     }
+  }
+
+
+  const editAccountById = (id, updatedName, updatedEmail, updatedNumber, updatedPassword) => {
+    const updatedAccount = accounts.map((account) => {
+      if (account.id === id) {
+        return {
+          id,
+          name_surname: updatedName,
+          email: updatedEmail,
+          phone_number: updatedNumber,
+          password: updatedPassword,
+        };
+      }
+      return account;
+    })
+    setAccounts(updatedAccount)
+  }
 
   const fetchAccounts = async () => {
-    const response = await axios.get('https://freshdealbackend.azurewebsites.net/v1/register');//burasi degisecek
-    debugger;//database denemesi
-    setAccounts(response.data);
+    try {
+      const response = await dispatch(getUserDataThunk());
+      setAccounts(response.payload);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   const sharedValuesAndMethods = {
@@ -62,11 +60,10 @@ const handleRegister = async (name_surname, email, phone_number, password) => {
   };
 
   return (
-    <AccountsContext.Provider value={sharedValuesAndMethods}>
-      {children}
-    </AccountsContext.Provider>
+      <AccountsContext.Provider value={sharedValuesAndMethods}>
+        {children}
+      </AccountsContext.Provider>
   );
 }
 
 export { AccountProvider };
-export default AccountsContext;

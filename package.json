@@ -27,6 +27,7 @@
     "react-owl-carousel": "^2.3.3",
     "react-redux": "^9.2.0",
     "react-router": "^7.1.0",
+    "react-router-dom": "^7.6.0",
     "react-slick": "^0.30.3",
     "react-spinners": "^0.15.0",
     "react-swiper": "^0.1.5",
@@ -45,6 +46,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",
+    "path": "^0.12.7",
     "vite": "^6.0.1"
   }
 }

@@ -74,7 +74,7 @@ const MyAccountOrder = () => {
                     </li>
                     {/* nav item */}
                     <li className="nav-item">
-                      <Link className="nav-link" to="/MyAccountAddress">
+                      <Link className="nav-link" to="/AddressSelection">
                         <i className="fas fa-map-marker-alt me-2" />
                         Address
                       </Link>
@@ -484,23 +484,9 @@ const MyAccountOrder = () => {
               </li>
               {/* nav item */}
               <li className="nav-item">
-                <a className="nav-link" href="/MyAccountAddress">
+                <a className="nav-link" href="/src/pages/AddressSelection">
                   <i className="fas fa-map-marker-alt me-2" />
                   Address
-                </a>
-              </li>
-              {/* nav item */}
-              <li className="nav-item">
-                <a className="nav-link" href="/MyAcconutPaymentMethod">
-                  <i className="fas fa-credit-card me-2" />
-                  Payment Method
-                </a>
-              </li>
-              {/* nav item */}
-              <li className="nav-item">
-                <a className="nav-link" href="/MyAcconutNotification">
-                  <i className="fas fa-bell me-2" />
-                  Notification
                 </a>
               </li>
             </ul>
