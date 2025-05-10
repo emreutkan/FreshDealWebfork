@@ -56,7 +56,7 @@ function RestaurantList() {
                                         <h5 className="card-title">{restaurant.restaurantName}</h5>
                                         <div className="rating-container">
                                             <i className="bi bi-star-fill"></i>
-                                            <span className="rating">{restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'}</span>
+                                            <span className="rating">{restaurant.rating != null ? restaurant.rating.toFixed(1) : '0.0'}</span>
                                         </div>
                                     </div>
                                     <p className="card-text restaurant-desc">{restaurant.restaurantDescription}</p>
