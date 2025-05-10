@@ -51,7 +51,7 @@ const ShopCheckOut = () => {
                     <h1 className="fw-bold mb-0">Checkout</h1>
                     <p className="mb-0">
                       Already have an account? Click here to{" "}
-                      <Link to="/MyAccountSignIn">Sign in</Link>.
+                      <Link to="/Login">Sign in</Link>.
                     </p>
                   </div>
                 </div>

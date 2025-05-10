@@ -52,7 +52,7 @@ const MyAccountForgetPassword = () => {
                         <span className="navbar-text">
                           Already have an account?{" "}
 
-                          <Link to="/MyAccountSignIn">Sign in</Link>
+                          <Link to="/Login">Sign in</Link>
                         </span>
                       </div>
                       {/* btn */}
@@ -61,7 +61,7 @@ const MyAccountForgetPassword = () => {
                         <button type="submit" className="btn btn-primary">
                           Reset Password
                         </button>
-                        <Link to="/MyAccountSignUp" className="btn btn-light">
+                        <Link to="/Register" className="btn btn-light">
                           Back
                         </Link>
                       </div>
