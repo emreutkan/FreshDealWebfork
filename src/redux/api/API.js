@@ -8,7 +8,7 @@ export const API_BASE_URL = 'http://192.168.1.3:8000/v1';
 export const GET_UPLOADED_FILE_API_ENDPOINT = `${API_BASE_URL}/uploads`;
 
 
-export const getUploadedFileAPI = async (filename) => {
+export const getUploadedFileAPI = async (filename: string): Promise<Blob> => {
     const functionName = 'getUploadedFileAPI';
     const endpoint = `${GET_UPLOADED_FILE_API_ENDPOINT}/${filename}`;
 
@@ -20,7 +20,7 @@ export const getUploadedFileAPI = async (filename) => {
         });
         logResponse(functionName, endpoint, response.data);
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
         logError(functionName, endpoint, error);
         throw error;
     }
