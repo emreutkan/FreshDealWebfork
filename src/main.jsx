@@ -4,10 +4,10 @@ import './index.css'
 import App from './App'
 import { AccountProvider } from './context/account';
 import { AuthProvider } from './context/AuthContext';
-import { store } from '../store/store';
 import { Provider } from 'react-redux';
 import { CartProvider } from './context/CartContext';
 import { GlobalResetProvider } from './context/GlobalResetContext';
+import {store} from "@src/redux/store.js";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

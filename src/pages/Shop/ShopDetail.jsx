@@ -2,20 +2,26 @@ import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import axios from "axios";
 import CartContext from "../../context/CartContext";
+import { useDispatch, useSelector } from "react-redux";
+import { getRestaurantThunk, getListingsThunk } from "@src/redux/thunks/restaurantThunks";
+import { addItemToCart } from "@src/redux/thunks/cartThunks";
 
 const ShopDetail = () => {
     const { id } = useParams();
-    const [restaurant, setRestaurant] = useState(null);
-    const [listings, setListings] = useState([]);
+    const dispatch = useDispatch();
     const { cartRestaurantId, setCartRestaurantId, addToCart } = useContext(CartContext);
     const [errorMessage, setErrorMessage] = useState("");
 
-    useEffect(() => {
-        axios.get(`https://freshdealbackend.azurewebsites.net/v1/restaurants/${id}`).then(res => setRestaurant(res.data));
-        axios.get(`https://freshdealbackend.azurewebsites.net/v1/listings?restaurant_id=${id}&page=1&per_page=10`).then(res => setListings(res.data.data));
-    }, [id]);
+    const restaurant = useSelector((state) => state.restaurant.selectedRestaurant);
+    const listings = useSelector((state) => state.restaurant.selectedRestaurantListings);
+    const loading = useSelector((state) => state.restaurant.listingsLoading);
 
-    if (!restaurant) return <div>Loading...</div>;
+    useEffect(() => {
+        dispatch(getRestaurantThunk(id));
+        dispatch(getListingsThunk({ restaurantId: id, page: 1, perPage: 10 }));
+    }, [dispatch, id]);
+
+    if (loading || !restaurant) return <div>Loading...</div>;
 
     return (
         <div className="container my-5">
@@ -37,19 +43,19 @@ const ShopDetail = () => {
                                 <p className="card-text">{listing.description}</p>
                                 <p className="card-text">${listing.pick_up_price}</p>
                                 <button
-  className="btn btn-primary"
-  onClick={async () => {
-    try {
-      await addToCart(listing.id, id);
-    } catch (error) {
-      console.error("Hata:", error);
-      setErrorMessage("Cannot add item from a different restaurant. Please reset your cart before adding items from another restaurant.");
-      setTimeout(() => setErrorMessage(""), 4000);
-    }
-  }}
->
-  Add to Cart
-</button>
+                                    className="btn btn-primary"
+                                    onClick={async () => {
+                                        try {
+                                            await dispatch(addItemToCart({ listing_id: listing.id, restaurant_id: id }));
+                                        } catch (error) {
+                                            console.error("Hata:", error);
+                                            setErrorMessage("Cannot add item from a different restaurant. Please reset your cart before adding items from another restaurant.");
+                                            setTimeout(() => setErrorMessage(""), 4000);
+                                        }
+                                    }}
+                                >
+                                    Add to Cart
+                                </button>
                             </div>
                         </div>
                     </div>

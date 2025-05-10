@@ -1,10 +1,9 @@
-import React, {useContext, useEffect, useState} from "react";
-import { Link } from "react-router";
-import { MagnifyingGlass } from "react-loader-spinner";
+// eslint-disable-next-line no-unused-vars
+import React, {useEffect, useState} from "react";
 import ScrollToTop from "../ScrollToTop";
-import axios from "axios";
-import AuthContext from "@src/context/AuthContext.jsx";
 import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import { useDispatch, useSelector } from "react-redux";
+import {addAddressAsync} from "@src/redux/thunks/addressThunks";
 
 const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -14,8 +13,13 @@ const mapContainerStyle = {
 };
 
 const MyAccountAddress = () => {
+  // Redux
+  const dispatch = useDispatch();
+  const addresses = useSelector((state) => state.address.addresses);
+  const addressLoading = useSelector((state) => state.address.loading);
+
   // loading
-  const [loaderStatus, setLoaderStatus] = useState(true);
+  const [, setLoaderStatus] = useState(true);
   useEffect(() => {
     setTimeout(() => {
       setLoaderStatus(false);
@@ -26,8 +30,6 @@ const MyAccountAddress = () => {
   const [addressData, setAddressData] = useState(null);
   const [apartmentNo, setApartmentNo] = useState(null);
   const [doorNo, setDoorNo] = useState(null);
-  const {authToken} = useContext(AuthContext);
-
   const handleClick = (event) => {
     const lat = event.detail.latLng.lat;
     const lng = event.detail.latLng.lng;
@@ -73,574 +75,132 @@ const MyAccountAddress = () => {
   };
 
   const saveAddress = async () => {
-    const response = await axios.post("https://freshdealbackend.azurewebsites.net/v1/addresses",
-        addressData
-        , {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          }
-        })
-    console.log(response.data);
-
-    return response.data;
+    dispatch(addAddressAsync(addressData));
   }
 
   return (
-    <div>
-       <>
-            <ScrollToTop/>
-            </>
-      <>
-        <div>
-          {/* section */}
-          <section>
-            {/* container */}
-            <div className="container">
-              {/* row */}
-              <div className="row">
-                {/* col */}
-                <div className="col-12">
-                  <div className="p-6 d-flex justify-content-between align-items-center d-md-none">
-                    {/* heading */}
-                    <h3 className="fs-5 mb-0">Account Setting</h3>
-                    <button
-                      className="btn btn-outline-gray-400 text-muted d-md-none"
-                      type="button"
-                      data-bs-toggle="offcanvas"
-                      data-bs-target="#offcanvasAccount"
-                      aria-controls="offcanvasAccount"
-                    >
-                      <i className="fas fa-bars"></i>
-                    </button>
-                  </div>
-                </div>
-                {/* col */}
-                <div className="col-lg-3 col-md-4 col-12 border-end  d-none d-md-block">
-                  <div className="pt-10 pe-lg-10">
-                    {/* nav */}
-                    <ul className="nav flex-column nav-pills nav-pills-dark">
-                      {/* nav item */}
-                      <li className="nav-item">
-                        {/* nav link */}
-                        <Link
-                          className="nav-link "
-                          aria-current="page"
-                          to="/MyAccountOrder"
-                        >
-                          <i className="fas fa-shopping-bag me-2" />
-                          Your Orders
-                        </Link>
-                      </li>
-                      {/* nav item */}
-                      <li className="nav-item">
-                        <Link className="nav-link " to="/MyAccountSetting">
-                          <i className="fas fa-cog me-2" />
-                          Settings
-                        </Link>
-                      </li>
-                      {/* nav item */}
-                      <li className="nav-item">
-                        <Link
-                          className="nav-link active"
-                          to="/MyAccountAddress"
-                        >
-                          <i className="fas fa-map-marker-alt me-2" />
-                          Address
-                        </Link>
-                      </li>
-                      {/* nav item */}
-                      <li className="nav-item">
-                        <Link className="nav-link" to="/MyAcconutPaymentMethod">
-                          <i className="fas fa-credit-card me-2" />
-                          Payment Method
-                        </Link>
-                      </li>
-                      {/* nav item */}
-                      <li className="nav-item">
-                        <Link className="nav-link" to="/MyAcconutNotification">
-                          <i className="fas fa-bell me-2" />
-                          Notification
-                        </Link>
-                      </li>
-                      {/* nav item */}
-                      <li className="nav-item">
-                        <hr />
-                      </li>
-                      {/* nav item */}
-                      <li className="nav-item">
-                        <Link className="nav-link " to="/Grocery-react/">
-                          <i className="fas fa-sign-out-alt me-2" />
-                          Log out
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="col-lg-9 col-md-8 col-12">
-                  <div>
-                    {loaderStatus ? (
-                      <div className="loader-container">
-                        {/* <PulseLoader loading={loaderStatus} size={50} color="#0aad0a" /> */}
-                        <MagnifyingGlass
-                          visible={true}
-                          height="100"
-                          width="100"
-                          ariaLabel="magnifying-glass-loading"
-                          wrapperStyle={{}}
-                          wrapperclassName="magnifying-glass-wrapper"
-                          glassColor="#c0efff"
-                          color="#0aad0a"
-                        />
-                      </div>
-                    ) : (
-                      <>
-                        <div className="p-6 p-lg-10">
-                          <div className="d-flex justify-content-between mb-6">
-                            {/* heading */}
-                            <h2 className="mb-0">Address</h2>
-                            {/* button */}
-                            <Link
-                              to="#"
-                              className="btn btn-outline-primary"
-                              data-bs-toggle="modal"
-                              data-bs-target="#addAddressModal"
-                            >
-                              Add a new address{" "}
-                            </Link>
-                          </div>
-                          <div className="row">
-                            {/* col */}
-                            <div className="col-lg-5 col-xxl-4 col-12 mb-4">
-                              {/* form */}
-                              <div className="border p-6 rounded-3">
-                                <div className="form-check mb-4">
-                                  <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="homeRadio"
-                                    defaultChecked
-                                  />
-                                  <label
-                                    className="form-check-label text-dark fw-semi-bold"
-                                    htmlFor="homeRadio"
-                                  >
-                                    Home
-                                  </label>
-                                </div>
-                                {/* address */}
-                                <p className="mb-6">
-                                  Jitu Chauhan
-                                  <br />
-                                  4450 North Avenue Oakland, <br />
-                                  Nebraska, United States,
-                                  <br />
-                                  402-776-1106
-                                </p>
-                                {/* btn */}
-                                <Link to="#" className="btn btn-info btn-sm">
-                                  Default address
-                                </Link>
-                                <div className="mt-4">
-                                  <Link to="#" className="text-inherit">
-                                    Edit{" "}
-                                  </Link>
-                                  <Link
-                                    to="#"
-                                    className="text-danger ms-3"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                  >
-                                    Delete
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-lg-5 col-xxl-4 col-12 mb-4">
-                              {/* input */}
-                              <div className="border p-6 rounded-3">
-                                <div className="form-check mb-4">
-                                  <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="officeRadio"
-                                  />
-                                  <label
-                                    className="form-check-label text-dark fw-semi-bold"
-                                    htmlFor="officeRadio"
-                                  >
-                                    Office
-                                  </label>
-                                </div>
-                                {/* nav item */}
-                                <p className="mb-6">
-                                  Nitu Chauhan
-                                  <br />
-                                  3853 Coal Road <br />
-                                  Tannersville, Pennsylvania, 18372, United
-                                  States <br />
-                                  402-776-1106
-                                </p>
-                                {/* link */}
-                                <Link to="#" className="link-primary">
-                                  Set as Default
-                                </Link>
-                                <div className="mt-4">
-                                  <Link to="#" className="text-inherit">
-                                    Edit{" "}
-                                  </Link>
-                                  {/* btn */}
-                                  <Link
-                                    to="#"
-                                    className="text-danger ms-3"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                  >
-                                    Delete
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-          {/* Modal */}
-          <div
-            className="modal fade"
-            id="deleteModal"
-            tabIndex={-1}
-            aria-labelledby="deleteModalLabel"
-            aria-hidden="true"
-          >
-            <div className="modal-dialog">
-              {/* modal content */}
-              <div className="modal-content">
-                {/* modal header */}
-                <div className="modal-header">
-                  <h5 className="modal-title" id="deleteModalLabel">
-                    Delete address
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  />
-                </div>
-                {/* modal body */}
-                <div className="modal-body">
-                  <h6>Are you sure you want to delete this address?</h6>
-                  <p className="mb-6">
-                    Jitu Chauhan
-                    <br />
-                    4450 North Avenue Oakland, <br />
-                    Nebraska, United States,
-                    <br />
-                    402-776-1106
-                  </p>
-                </div>
-                {/* modal footer */}
-                <div className="modal-footer">
-                  {/* btn */}
-                  <button
-                    type="button"
-                    className="btn btn-outline-gray-400"
-                    data-bs-dismiss="modal"
-                  >
-                    Cancel
-                  </button>
-                  <button type="button" className="btn btn-danger">
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Modal */}
-          <div
-            className="modal fade"
-            id="addAddressModal"
-            tabIndex={-1}
-            aria-labelledby="addAddressModalLabel"
-            aria-hidden="true"
-          >
-            <div className="modal-dialog">
-              {/* modal content */}
-              <div className="modal-content">
-                {/* modal body */}
-
-                <div className="modal-body p-6">
-                  <div className="d-flex justify-content-between mb-5">
-                    <div>
-                      <h5 className="h6 mb-1" id="addAddressModalLabel">
-                        New Shipping Address
-                      </h5>
-                      <p className="small mb-0">
-                        Add new shipping address for your order delivery.
-                      </p>
-                    </div>
-                    <div>
-                      <button
-                        type="button"
-                        className="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"
-                      />
-                    </div>
-                  </div>
-                  <div className="row g-3">
-                    {/*
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="First name"
-                        aria-label="First name"
-                        required
-                      />
-                    </div>
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Last name"
-                        aria-label="Last name"
-                        required
-                      />
-                    </div>
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Address Line 1"
-                      />
-                    </div>
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Address Line 2"
-                      />
-                    </div>
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="City"
-                      />
-                    </div>
-                    <div className="col-12">
-                      <select className="form-select">
-                        <option selected> India</option>
-                        <option value={1}>UK</option>
-                        <option value={2}>USA</option>
-                        <option value={3}>UAE</option>
-                      </select>
-                    </div>
-                    <div className="col-12">
-                      <select
-                        className="form-select"
-                        aria-label="Default select example"
-                      >
-                        <option selected>Gujarat</option>
-                        <option value={1}>Northern Ireland</option>
-                        <option value={2}> Alaska</option>
-                        <option value={3}>Abu Dhabi</option>
-                      </select>
-                    </div>
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Zip Code"
-                      />
-                    </div>
-                    <div className="col-12">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Business Name"
-                      />
-                    </div>
-                    <div className="col-12">
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          defaultValue
-                          id="flexCheckDefault"
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor="flexCheckDefault"
-                        >
-                          Set as Default
-                        </label>
-                      </div>
-                    </div>*/}
-
+      <div>
+        <>
+          <ScrollToTop/>
+        </>
+        <>
+          <div>
+            {/* section */}
+            <section>
+              {/* container */}
+              <div className="container">
+                {/* row */}
+                <div className="row">
+                  {/* col */}
+                  <div className="col-12">
+                    {/* Address Map */}
                     <APIProvider apiKey={apiKey}>
                       <Map
-                          style={mapContainerStyle}
-                          defaultZoom={6}
-                          defaultCenter={coordinates}
-                          gestureHandling={'greedy'}
-                          disableDefaultUI={true}
+                          center={coordinates}
+                          zoom={13}
+                          mapId={"YOUR_MAP_ID"}
                           onClick={handleClick}
+                          style={mapContainerStyle}
                       >
-                        <Marker position={coordinates}/>
+                        <Marker position={coordinates} />
                       </Map>
                     </APIProvider>
-                    <div className="col-12 text-end">
-                      <button
-                          type="button"
-                          className="btn btn-outline-primary"
-                          data-bs-dismiss="modal"
-                      >
-                        Cancel
-                      </button>
-                      <button onClick={saveAddress} className="btn btn-primary" type="button">
-                        Save Address
-                      </button>
-                    </div>
-                    {coordinates && (
-                            <div>
-                              <div style={{ marginTop: "10px" }}>
-                                <label>
-                                  Apartment No:
-                                  <input
-                                      name="apartmentNo"
-                                      type="text"
-                                      value={apartmentNo}
-                                      onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setApartmentNo(value)
-                                        setAddressData({
-                                          ...addressData,
-                                          [name]: value,
-                                        });
-                                      }}
-                                      style={{ marginLeft: "10px" }}
-                                  />
-                                </label>
-                              </div>
-                              <div style={{ marginTop: "10px" }}>
-                                <label>
-                                  Door No:
-                                  <input
-                                      name="doorNo"
-                                      type="text"
-                                      value={doorNo}
-                                      onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setDoorNo(value)
-                                        setAddressData({
-                                          ...addressData,
-                                          [name]: value,
-                                        });
-                                      }}
-                                      style={{ marginLeft: "10px" }}
-                                  />
-                                </label>
-                              </div>
-                            </div>
-                        )}
-                    {addressData && (
-                        <pre>{JSON.stringify(addressData, null, 2)}</pre>
+                    {addressData && !addressData.error && (
+                        <div className="mt-3">
+                          <p>
+                            <strong>Street:</strong> {addressData.street}
+                          </p>
+                          <p>
+                            <strong>Neighborhood:</strong> {addressData.neighborhood}
+                          </p>
+                          <p>
+                            <strong>District:</strong> {addressData.district}
+                          </p>
+                          <p>
+                            <strong>Province:</strong> {addressData.province}
+                          </p>
+                          <p>
+                            <strong>Country:</strong> {addressData.country}
+                          </p>
+                          <p>
+                            <strong>Postal Code:</strong> {addressData.postalCode}
+                          </p>
+                          <div className="form-group mb-3">
+                            <label>Apartment No (Optional):</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={apartmentNo || ""}
+                                onChange={(e) => {
+                                  setApartmentNo(e.target.value);
+                                  setAddressData({
+                                    ...addressData,
+                                    apartmentNo: e.target.value,
+                                  });
+                                }}
+                            />
+                          </div>
+
+                          <div className="form-group mb-3">
+                            <label>Door No (Optional):</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={doorNo || ""}
+                                onChange={(e) => {
+                                  setDoorNo(e.target.value);
+                                  setAddressData({
+                                    ...addressData,
+                                    doorNo: e.target.value,
+                                  });
+                                }}
+                            />
+                          </div>
+
+                          <button
+                              className="btn btn-primary"
+                              onClick={saveAddress}
+                              disabled={addressLoading}
+                          >
+                            {addressLoading ? "Saving..." : "Save Address"}
+                          </button>
+                        </div>
+                    )}
+                    {addressData && addressData.error && (
+                        <div className="alert alert-danger mt-3">
+                          {addressData.error}
+                        </div>
+                    )}
+
+                    {/* Display existing addresses from Redux store */}
+                    {addresses.length > 0 && (
+                        <div className="mt-5">
+                          <h3>Your Addresses</h3>
+                          <div className="row">
+                            {addresses.map((address) => (
+                                <div className="col-md-6" key={address.id}>
+                                  <div className="card mb-3">
+                                    <div className="card-body">
+                                      <h5 className="card-title">{address.title} {address.is_primary && <span className="badge bg-success">Primary</span>}</h5>
+                                      <p>{address.street}, {address.neighborhood}</p>
+                                      <p>{address.district}, {address.province}, {address.country}</p>
+                                      <p>Postal Code: {address.postalCode}</p>
+                                      {address.apartmentNo && <p>Apartment No: {address.apartmentNo}</p>}
+                                      {address.doorNo && <p>Door No: {address.doorNo}</p>}
+                                    </div>
+                                  </div>
+                                </div>
+                            ))}
+                          </div>
+                        </div>
                     )}
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
-          {/* modal */}
-          <div
-            className="offcanvas offcanvas-start"
-            tabIndex={-1}
-            id="offcanvasAccount"
-            aria-labelledby="offcanvasAccountLabel"
-          >
-            {/* offcanvas header */}
-            <div className="offcanvas-header">
-              <h5 className="offcanvas-title" id="offcanvasAccountLabel">
-                My Account
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"
-              />
-            </div>
-            {/* offcanvas body */}
-            <div className="offcanvas-body">
-              <ul className="nav flex-column nav-pills nav-pills-dark">
-                {/* nav item */}
-                <li className="nav-item">
-                  <a
-                    className="nav-link active"
-                    aria-current="page"
-                    href="/MyAccountOrder"
-                  >
-                    <i className="fas fa-shopping-bag me-2" />
-                    Your Orders
-                  </a>
-                </li>
-                {/* nav item */}
-                <li className="nav-item">
-                  <a className="nav-link " href="/MyAccountSetting">
-                    <i className="fas fa-cog me-2" />
-                    Settings
-                  </a>
-                </li>
-                {/* nav item */}
-                <li className="nav-item">
-                  <a className="nav-link" href="/MyAccountAddress">
-                    <i className="fas fa-map-marker-alt me-2" />
-                    Address
-                  </a>
-                </li>
-                {/* nav item */}
-                <li className="nav-item">
-                  <a className="nav-link" href="/MyAcconutPaymentMethod">
-                    <i className="fas fa-credit-card me-2" />
-                    Payment Method
-                  </a>
-                </li>
-                {/* nav item */}
-                <li className="nav-item">
-                  <a className="nav-link" href="/MyAcconutNotification">
-                    <i className="fas fa-bell me-2" />
-                    Notification
-                  </a>
-                </li>
-              </ul>
-              <hr className="my-6" />
-              <div>
-                {/* nav  */}
-                <ul className="nav flex-column nav-pills nav-pills-dark">
-                  {/* nav item */}
-                  <li className="nav-item">
-                    <a className="nav-link " href="/Grocery-react/">
-                      <i className="fas fa-sign-out-alt me-2" />
-                      Log out
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    </div>
+        </>
+      </div>
   );
 };
 
