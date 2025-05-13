@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { getRestaurantsByProximity } from "@src/redux/thunks/restaurantThunks";
 
@@ -56,7 +56,7 @@ function RestaurantList() {
                                         <h5 className="card-title">{restaurant.restaurantName}</h5>
                                         <div className="rating-container">
                                             <i className="bi bi-star-fill"></i>
-                                            <span className="rating">{restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'}</span>
+                                            <span className="rating">{restaurant.rating.toFixed(1)}</span>
                                         </div>
                                     </div>
                                     <p className="card-text restaurant-desc">{restaurant.restaurantDescription}</p>
@@ -106,12 +106,11 @@ function RestaurantList() {
                     text-decoration: none;
                     color: inherit;
                     display: block;
-                    transition: transform 0.2s, box-shadow 0.3s;
+                    transition: transform 0.2s;
                 }
 
                 .restaurant-card:hover {
                     transform: translateY(-5px);
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
                 }
 
                 .card {
@@ -120,22 +119,15 @@ function RestaurantList() {
                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     height: 100%;
                     border: none;
-                    transition: all 0.3s ease;
                 }
 
                 .card-img-container {
                     position: relative;
-                    overflow: hidden;
                 }
 
                 .card-img-top {
                     height: 180px;
                     object-fit: cover;
-                    transition: transform 0.5s;
-                }
-
-                .restaurant-card:hover .card-img-top {
-                    transform: scale(1.05);
                 }
 
                 .category-badge {
@@ -148,8 +140,6 @@ function RestaurantList() {
                     color: white;
                     font-size: 12px;
                     font-weight: 600;
-                    backdrop-filter: blur(2px);
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
                 .favorite-btn {
@@ -167,12 +157,10 @@ function RestaurantList() {
                     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
                     cursor: pointer;
                     transition: all 0.2s;
-                    z-index: 1;
                 }
 
                 .favorite-btn:hover {
                     background-color: #f8f9fa;
-                    transform: scale(1.1);
                 }
 
                 .favorite-btn i {
@@ -204,7 +192,6 @@ function RestaurantList() {
                     padding: 4px 8px;
                     border-radius: 12px;
                     gap: 4px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                 }
 
                 .rating-container i {
@@ -226,7 +213,6 @@ function RestaurantList() {
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
-                    line-height: 1.4;
                 }
 
                 .restaurant-info {
@@ -240,9 +226,6 @@ function RestaurantList() {
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    background-color: #f9f9f9;
-                    padding: 4px 8px;
-                    border-radius: 6px;
                 }
 
                 .info-item i {
@@ -285,7 +268,6 @@ function RestaurantList() {
                     padding: 30px;
                     background-color: #f8f9fa;
                     border-radius: 8px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                 }
             `}</style>
         </div>
