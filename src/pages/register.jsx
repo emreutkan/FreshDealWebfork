@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import signupimage from '@src/images/signup-g.svg';
 import { Link, useNavigate } from "react-router";
-import ScrollToTop from "../ScrollToTop";
+import ScrollToTop from "./ScrollToTop.jsx";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUserThunk, loginUserThunk, getUserDataThunk } from "@src/redux/thunks/userThunks";
-import { setEmail, setName, setPassword, setPhoneNumber, setSelectedCode, setToken } from "@src/redux/slices/userSlice";
-import { verifyCode } from "@src/redux/api/authAPI";
+import { registerUserThunk, loginUserThunk, getUserDataThunk } from "@src/redux/thunks/userThunks.js";
+import { setEmail, setName, setPassword, setPhoneNumber, setSelectedCode, setToken } from "@src/redux/slices/userSlice.js";
+import { verifyCode } from "@src/redux/api/authAPI.js";
 
 const Register = () => {
   const dispatch = useDispatch();
