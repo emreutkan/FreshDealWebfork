@@ -1,97 +1,93 @@
-import {createAsyncThunk} from "@reduxjs/toolkit";
-import {tokenService} from "@src/services/tokenService.js";
-import {userApi} from "@src/redux/api/userAPI";
-import {authApi} from "@src/redux/api/authAPI";
-import {setToken} from "@src/redux/slices/userSlice";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { tokenService } from "@src/services/tokenService.js";
+import { userApi } from "@src/redux/api/userAPI";
+import { authApi } from "@src/redux/api/authAPI";
+import { setToken } from "@src/redux/slices/userSlice";
 
 export const loginUserThunk = createAsyncThunk(
     "user/loginUser",
-    async (payload, {dispatch, rejectWithValue}) => {
+    async (payload, { dispatch, rejectWithValue }) => {
         try {
             const response = await authApi.login(payload);
-            console.log(response)
+            console.log("Login API response:", response);
 
             if (response.token) {
+                // Save token to Redux state
                 dispatch(setToken(response.token));
-                await dispatch(getUserDataThunk({token: response.token}));
+
+                // Also save token to localStorage via tokenService
+                await tokenService.setToken(response.token);
+
+                console.log("Token after setting:", response.token);
+
+                // Get user data with the token
+                await dispatch(getUserDataThunk({ token: response.token }));
             }
 
-            console.log(response)
             return response;
         } catch (error) {
-            console.log(error)
+            console.log("Login error:", error);
             return rejectWithValue(error.response?.data || "Login failed");
         }
     }
 );
 
-
-// Registration
 export const registerUserThunk = createAsyncThunk(
     "user/registerUser",
-    async (userData, {rejectWithValue}) => {
+    async (userData, { rejectWithValue }) => {
         try {
             const response = await authApi.register(userData);
-            return {
-                success: response.success,
-                message: response.message,
-            };
+            return response;
         } catch (error) {
             return rejectWithValue(error.response?.data || "Registration failed");
         }
     }
 );
 
-// Update username
 export const updateUsernameThunk = createAsyncThunk(
     "user/updateUsername",
-    async ({username}, {dispatch, rejectWithValue}) => {
+    async ({ username }, { rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
                 return rejectWithValue("Authentication token is missing");
             }
             const response = await userApi.updateUsername(username, token);
-            await dispatch(getUserDataThunk({token}));
             return response;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || "Failed to update username");
+            return rejectWithValue(error.response?.data || "Failed to update username");
         }
     }
 );
 
-// Update email
 export const updateEmailThunk = createAsyncThunk(
     "user/updateEmail",
-    async ({old_email, new_email}, {dispatch, rejectWithValue}) => {
+    async ({ old_email, new_email }, { rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
                 return rejectWithValue("Authentication token is missing");
             }
             const response = await userApi.updateEmail(old_email, new_email, token);
-            await dispatch(getUserDataThunk({token}));
             return response;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || "Failed to update email");
+            return rejectWithValue(error.response?.data || "Failed to update email");
         }
     }
 );
 
-// Update password
 export const updatePasswordThunk = createAsyncThunk(
     "user/updatePassword",
-    async ({old_password, new_password}, {dispatch, rejectWithValue}) => {
+    async ({ old_password, new_password }, { rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
                 return rejectWithValue("Authentication token is missing");
             }
             const response = await userApi.updatePassword(old_password, new_password, token);
-            await dispatch(getUserDataThunk({token}));
             return response;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || "Failed to update password");
+            return rejectWithValue(error.response?.data || "Failed to update password");
         }
     }
 );
@@ -99,7 +95,7 @@ export const updatePasswordThunk = createAsyncThunk(
 // Get user data
 export const getUserDataThunk = createAsyncThunk(
     "user/getUserData",
-    async ({token}, {rejectWithValue}) => {
+    async ({ token }, { rejectWithValue }) => {
         try {
             return await userApi.getUserData(token);
         } catch (error) {
@@ -111,7 +107,7 @@ export const getUserDataThunk = createAsyncThunk(
 // Add to favorites
 export const addFavoriteThunk = createAsyncThunk(
     "favorites/addFavorite",
-    async ({restaurant_id}, {dispatch, rejectWithValue}) => {
+    async ({ restaurant_id }, { dispatch, rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
@@ -129,7 +125,7 @@ export const addFavoriteThunk = createAsyncThunk(
 // Remove from favorites
 export const removeFavoriteThunk = createAsyncThunk(
     "favorites/removeFavorite",
-    async ({restaurant_id}, {dispatch, rejectWithValue}) => {
+    async ({ restaurant_id }, { dispatch, rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
@@ -146,14 +142,14 @@ export const removeFavoriteThunk = createAsyncThunk(
 
 export const getFavoritesThunk = createAsyncThunk(
     "favorites/getFavorites",
-    async (_, {rejectWithValue}) => {
+    async (_, { rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
                 return rejectWithValue("Authentication token is missing");
             }
             const response = await userApi.getFavorites(token);
-            return {favorites: response.favorites};
+            return { favorites: response.favorites };
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || "Failed to fetch favorites"
@@ -164,7 +160,7 @@ export const getFavoritesThunk = createAsyncThunk(
 
 export const getUserRankThunk = createAsyncThunk(
     "user/getUserRank",
-    async (userId, {getState, rejectWithValue}) => {
+    async (userId, { getState, rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
@@ -188,10 +184,11 @@ export const getUserRankThunk = createAsyncThunk(
         }
     }
 );
+
 // Get all user rankings
 export const getUserRankingsThunk = createAsyncThunk(
     "user/getUserRankings",
-    async (_, {rejectWithValue}) => {
+    async (_, { rejectWithValue }) => {
         try {
             const token = await tokenService.getToken();
             if (!token) {
@@ -200,12 +197,12 @@ export const getUserRankingsThunk = createAsyncThunk(
 
             const response = await userApi.getUserRankings(token);
 
-
             if (!Array.isArray(response)) {
-                return rejectWithValue("Invalid rankings response format");
+                console.warn("Expected array response for rankings but got:", response);
+                return { rankings: [] };
             }
 
-            return response;
+            return { rankings: response };
         } catch (error) {
             console.log("Error fetching user rankings:", error);
             return rejectWithValue(
@@ -213,6 +210,19 @@ export const getUserRankingsThunk = createAsyncThunk(
                 error.message ||
                 "Failed to fetch user rankings"
             );
+        }
+    }
+);
+
+export const logoutUserThunk = createAsyncThunk(
+    "user/logoutUser",
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            // Perform any necessary cleanup, e.g., token invalidation
+            await tokenService.clearToken();
+            dispatch(setToken(null));
+        } catch (error) {
+            return rejectWithValue("Logout failed");
         }
     }
 );
