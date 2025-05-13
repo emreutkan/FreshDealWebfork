@@ -165,7 +165,7 @@ const MyAccountSignIn = () => {
                     {error && (
                         <div className="col-12">
                           <div className="alert alert-danger" role="alert">
-                            {error}
+                            {userState.error?.payload?.message || error}
                           </div>
                         </div>
                     )}
@@ -178,6 +178,17 @@ const MyAccountSignIn = () => {
                           disabled={isLoading}
                       >
                         {isLoading ? "Signing In..." : "Sign In"}
+                      </button>
+                    </div>
+
+                    {/* Register button - redirects to /register */}
+                    <div className="col-12 mt-3">
+                      <button
+                          type="button"
+                          className="btn btn-outline-secondary w-100"
+                          onClick={() => navigate("/register")}
+                      >
+                        Create New Account
                       </button>
                     </div>
                   </div>

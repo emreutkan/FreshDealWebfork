@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, {useEffect, useRef} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFavoritesThunk } from "../redux/thunks/userThunks";
 import { Link } from "react-router-dom";
@@ -14,6 +14,10 @@ const FavoriteRestaurantList = () => {
     const favoriteRestaurants = restaurantsProximity.filter(restaurant =>
         favoriteRestaurantsIDs.includes(restaurant.id)
     );
+
+    useEffect(() => {
+        console.log("FavoriteRestaurants - Initial State:", favoriteRestaurantsIDs);
+    } , []);
 
     const debugFavorites = async () => {
         try {

@@ -1,16 +1,37 @@
-import React, { useEffect } from "react";
-import { Link } from "react-router";
+import React, { useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getRestaurantsByProximity } from "@src/redux/thunks/restaurantThunks";
+import { addFavoriteThunk, removeFavoriteThunk, getFavoritesThunk } from "@src/redux/thunks/userThunks";
+import { tokenService } from "@src/services/tokenService.js";
 
 function RestaurantList() {
     const dispatch = useDispatch();
     const restaurants = useSelector((state) => state.restaurant.restaurantsProximity);
     const loading = useSelector((state) => state.restaurant.restaurantsProximityLoading);
+    const favoriteRestaurantsIDs = useSelector((state) => state.restaurant.favoriteRestaurantsIDs || []);
 
     useEffect(() => {
         dispatch(getRestaurantsByProximity());
+        dispatch(getFavoritesThunk());
     }, [dispatch]);
+
+    const handleFavoritePress = useCallback((event, id) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const token = tokenService.getToken();
+        if (!token) {
+            console.error('Authentication token is missing.');
+            return;
+        }
+
+        if (favoriteRestaurantsIDs.includes(id)) {
+            dispatch(removeFavoriteThunk({restaurant_id: id}));
+        } else {
+            dispatch(addFavoriteThunk({restaurant_id: id}));
+        }
+    }, [dispatch, favoriteRestaurantsIDs]);
 
     if (loading) {
         return (
@@ -34,71 +55,80 @@ function RestaurantList() {
     return (
         <div className="restaurant-list">
             <div className="row">
-                {restaurants.map((restaurant) => (
-                    <div className="col-md-4 mb-4" key={restaurant.id}>
-                        <Link to={`/Restaurant/${restaurant.id}`} className="restaurant-card">
-                            <div className="card h-100">
-                                <div className="card-img-container">
-                                    <img
-                                        src={restaurant.image_url || 'https://via.placeholder.com/300x200?text=Restaurant'}
-                                        className="card-img-top"
-                                        alt={restaurant.restaurantName}
-                                    />
-                                    {restaurant.category && (
-                                        <span className="category-badge">{restaurant.category}</span>
-                                    )}
-                                    <button className="favorite-btn">
-                                        <i className="bi bi-heart"></i>
-                                    </button>
-                                </div>
-                                <div className="card-body">
-                                    <div className="restaurant-header">
-                                        <h5 className="card-title">{restaurant.restaurantName}</h5>
-                                        <div className="rating-container">
-                                            <i className="bi bi-star-fill"></i>
-                                            <span className="rating">{restaurant.rating.toFixed(1)}</span>
+                {restaurants.map((restaurant) => {
+                    const isFavorite = favoriteRestaurantsIDs.includes(restaurant.id);
+
+                    return (
+                        <div className="col-md-4 mb-4" key={restaurant.id}>
+                            <Link to={`/Restaurant/${restaurant.id}`} className="restaurant-card">
+                                <div className="card h-100">
+                                    <div className="card-img-container">
+                                        <img
+                                            src={restaurant.image_url || 'https://via.placeholder.com/300x200?text=Restaurant'}
+                                            className="card-img-top"
+                                            alt={restaurant.restaurantName}
+                                        />
+                                        {restaurant.category && (
+                                            <span className="category-badge">{restaurant.category}</span>
+                                        )}
+                                        <button
+                                            className="favorite-btn"
+                                            onClick={(e) => handleFavoritePress(e, restaurant.id)}
+                                        >
+                                            <i className={`bi ${isFavorite ? "bi-heart-fill" : "bi-heart"}`}
+                                               style={{ color: isFavorite ? "#FF4081" : "#757575" }}
+                                            ></i>
+                                        </button>
+                                    </div>
+                                    <div className="card-body">
+                                        <div className="restaurant-header">
+                                            <h5 className="card-title">{restaurant.restaurantName}</h5>
+                                            <div className="rating-container">
+                                                <i className="bi bi-star-fill"></i>
+                                                <span className="rating">{restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'}</span>
+                                            </div>
+                                        </div>
+                                        <p className="card-text restaurant-desc">{restaurant.restaurantDescription}</p>
+                                        <div className="restaurant-info">
+                                            <div className="info-item">
+                                                <i className="bi bi-geo-alt"></i>
+                                                <span>{restaurant.distance_km ? `${restaurant.distance_km.toFixed(1)} km away` : 'Distance unavailable'}</span>
+                                            </div>
+                                            {restaurant.delivery && (
+                                                <div className="info-item">
+                                                    <i className="bi bi-truck"></i>
+                                                    <span>{Math.round(15 + (restaurant.distance_km || 3) * 5)} min</span>
+                                                </div>
+                                            )}
+                                            {restaurant.pickup && (
+                                                <div className="info-item">
+                                                    <i className="bi bi-bag"></i>
+                                                    <span>Pickup</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="restaurant-footer">
+                                            {restaurant.deliveryFee !== undefined && restaurant.delivery && (
+                                                <div className="footer-item">
+                                                    <span className="footer-label">Delivery Fee:</span>
+                                                    <span className="footer-value">
+                                                        {restaurant.deliveryFee > 0 ? `${restaurant.deliveryFee.toFixed(2)} $` : 'Free'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {restaurant.minOrderAmount !== undefined && restaurant.delivery && (
+                                                <div className="footer-item">
+                                                    <span className="footer-label">Min Order:</span>
+                                                    <span className="footer-value">${restaurant.minOrderAmount.toFixed(2)}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    <p className="card-text restaurant-desc">{restaurant.restaurantDescription}</p>
-                                    <div className="restaurant-info">
-                                        <div className="info-item">
-                                            <i className="bi bi-geo-alt"></i>
-                                            <span>{restaurant.distance_km ? `${restaurant.distance_km.toFixed(1)} km away` : 'Distance unavailable'}</span>
-                                        </div>
-                                        {restaurant.delivery && (
-                                            <div className="info-item">
-                                                <i className="bi bi-truck"></i>
-                                                <span>{Math.round(15 + (restaurant.distance_km || 3) * 5)} min</span>
-                                            </div>
-                                        )}
-                                        {restaurant.pickup && (
-                                            <div className="info-item">
-                                                <i className="bi bi-bag"></i>
-                                                <span>Pickup</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="restaurant-footer">
-                                        {restaurant.deliveryFee !== undefined && restaurant.delivery && (
-                                            <div className="footer-item">
-                                                <span className="footer-label">Delivery Fee:</span>
-                                                <span className="footer-value">
-                          {restaurant.deliveryFee > 0 ? `${restaurant.deliveryFee.toFixed(2)} $` : 'Free'}
-                        </span>
-                                            </div>
-                                        )}
-                                        {restaurant.minOrderAmount !== undefined && restaurant.delivery && (
-                                            <div className="footer-item">
-                                                <span className="footer-label">Min Order:</span>
-                                                <span className="footer-value">${restaurant.minOrderAmount.toFixed(2)}</span>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
-                            </div>
-                        </Link>
-                    </div>
-                ))}
+                            </Link>
+                        </div>
+                    );
+                })}
             </div>
 
             <style jsx>{`
@@ -106,11 +136,12 @@ function RestaurantList() {
                     text-decoration: none;
                     color: inherit;
                     display: block;
-                    transition: transform 0.2s;
+                    transition: transform 0.2s, box-shadow 0.3s;
                 }
 
                 .restaurant-card:hover {
                     transform: translateY(-5px);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
                 }
 
                 .card {
@@ -119,15 +150,22 @@ function RestaurantList() {
                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     height: 100%;
                     border: none;
+                    transition: all 0.3s ease;
                 }
 
                 .card-img-container {
                     position: relative;
+                    overflow: hidden;
                 }
 
                 .card-img-top {
                     height: 180px;
                     object-fit: cover;
+                    transition: transform 0.5s;
+                }
+
+                .restaurant-card:hover .card-img-top {
+                    transform: scale(1.05);
                 }
 
                 .category-badge {
@@ -140,6 +178,8 @@ function RestaurantList() {
                     color: white;
                     font-size: 12px;
                     font-weight: 600;
+                    backdrop-filter: blur(2px);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
                 .favorite-btn {
@@ -157,15 +197,16 @@ function RestaurantList() {
                     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
                     cursor: pointer;
                     transition: all 0.2s;
+                    z-index: 1;
                 }
 
                 .favorite-btn:hover {
                     background-color: #f8f9fa;
+                    transform: scale(1.1);
                 }
 
                 .favorite-btn i {
                     font-size: 20px;
-                    color: #757575;
                 }
 
                 .restaurant-header {
@@ -192,6 +233,7 @@ function RestaurantList() {
                     padding: 4px 8px;
                     border-radius: 12px;
                     gap: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                 }
 
                 .rating-container i {
@@ -213,6 +255,7 @@ function RestaurantList() {
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                    line-height: 1.4;
                 }
 
                 .restaurant-info {
@@ -226,6 +269,9 @@ function RestaurantList() {
                     display: flex;
                     align-items: center;
                     gap: 6px;
+                    background-color: #f9f9f9;
+                    padding: 4px 8px;
+                    border-radius: 6px;
                 }
 
                 .info-item i {
@@ -268,6 +314,7 @@ function RestaurantList() {
                     padding: 30px;
                     background-color: #f8f9fa;
                     border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                 }
             `}</style>
         </div>
