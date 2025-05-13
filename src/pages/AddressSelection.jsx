@@ -3,12 +3,12 @@ import React, { useEffect, useState } from "react";
 import ScrollToTop from "@src/pages/ScrollToTop";
 import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
 import { useDispatch, useSelector } from "react-redux";
-import {addAddressAsync} from "@src/redux/thunks/addressThunks";
+import { addAddressAsync, updateAddress } from "@src/redux/thunks/addressThunks";
 import { Navigate } from "react-router-dom";
 import { tokenService } from "@src/services/tokenService.js";
 import { getUserDataThunk } from "@src/redux/thunks/userThunks";
 
-const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const mapContainerStyle = {
   width: "100%",
@@ -217,6 +217,21 @@ const AddressSelection = () => {
         lat: selectedAddress.latitude || 39.92077,
         lng: selectedAddress.longitude || 32.85411
       });
+
+      // Set this address as primary
+      setPrimaryAddress(addressId);
+    }
+  };
+
+  // New function to set an address as primary
+  const setPrimaryAddress = (addressId) => {
+    const selectedAddress = addresses.find(address => address.id === addressId);
+    if (selectedAddress && !selectedAddress.is_primary) {
+      // Only update if it's not already primary
+      dispatch(updateAddress({
+        id: addressId,
+        updates: { is_primary: true }
+      }));
     }
   };
 
@@ -291,6 +306,8 @@ const AddressSelection = () => {
                         style={mapContainerStyle}
                         gestureHandling="greedy"
                         onLoad={handleMapLoad}
+                        defaultZoom={15}
+                        defaultCenter={coordinates}
                     >
                       <Marker position={coordinates} />
                       <LocationButton />
