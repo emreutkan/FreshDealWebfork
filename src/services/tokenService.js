@@ -8,27 +8,42 @@ export const initializeTokenService = (manager) => {
 
 export const tokenService = {
     async setToken(token) {
+        // Store token in localStorage for persistence
         localStorage.setItem(TOKEN_KEY, token);
+        console.log("Token stored in localStorage:", token);
     },
 
     async getToken() {
-        // eslint-disable-next-line no-useless-catch
         try {
+            // First check localStorage
             const storedToken = localStorage.getItem(TOKEN_KEY);
+            console.log("Token retrieved from localStorage:", storedToken);
 
             if (storedToken) {
-                return validateToken(storedToken);
+                return storedToken;
             }
 
+            // If not in localStorage, try the tokenManager (Redux)
             if (tokenManager) {
                 const stateToken = tokenManager.getStateToken();
-                return validateToken(stateToken);
+                console.log("Token retrieved from state:", stateToken);
+                if (stateToken) {
+                    // If found in state, also save to localStorage for persistence
+                    localStorage.setItem(TOKEN_KEY, stateToken);
+                    return stateToken;
+                }
             }
 
             console.warn('No token found and no token manager available');
+            return null;
         } catch (error) {
+            console.error("Error in getToken:", error);
             throw error;
         }
+    },
+
+    async clearToken() {
+        localStorage.removeItem(TOKEN_KEY);
     }
 };
 

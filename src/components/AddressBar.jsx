@@ -32,18 +32,25 @@ function AddressBar() {
                 </div>
             </Link>
 
-            <style jsx>{`
+            <style>{`
                 .address-bar {
                     background-color: #fff;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
                     margin-bottom: 24px;
+                    transition: transform 0.3s, box-shadow 0.3s;
+                    overflow: hidden;
+                }
+
+                .address-bar:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
                 }
 
                 .address-bar-content {
                     display: flex;
                     align-items: center;
-                    padding: 16px;
+                    padding: 18px 20px;
                     text-decoration: none;
                     color: inherit;
                     transition: background-color 0.2s;
@@ -56,7 +63,14 @@ function AddressBar() {
                 .address-icon {
                     font-size: 24px;
                     color: #0aad0a;
-                    margin-right: 12px;
+                    margin-right: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(10, 173, 10, 0.1);
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 12px;
                 }
 
                 .address-details {
@@ -64,17 +78,44 @@ function AddressBar() {
                 }
 
                 .delivery-text {
-                    font-size: 12px;
+                    font-size: 13px;
                     color: #6c757d;
+                    margin-bottom: 4px;
                 }
 
                 .address-text {
-                    font-weight: 500;
+                    font-weight: 600;
                     color: #212529;
+                    font-size: 15px;
+                    line-height: 1.4;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 85%;
                 }
 
                 .address-arrow {
                     color: #6c757d;
+                    margin-left: 12px;
+                    font-size: 18px;
+                    transition: transform 0.2s;
+                }
+
+                .address-bar-content:hover .address-arrow {
+                    transform: translateX(3px);
+                }
+
+                @media (max-width: 576px) {
+                    .address-icon {
+                        font-size: 20px;
+                        width: 40px;
+                        height: 40px;
+                        margin-right: 12px;
+                    }
+
+                    .address-text {
+                        font-size: 14px;
+                    }
                 }
             `}</style>
         </div>
