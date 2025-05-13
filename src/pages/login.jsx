@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import signinimage from "@src/images/signin-g.svg";
 import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUserThunk } from "@src/redux/thunks/userThunks";
-import ScrollToTop from "../ScrollToTop";
+import { loginUserThunk } from "@src/redux/thunks/userThunks.js";
+import ScrollToTop from "./ScrollToTop.jsx";
 
 const MyAccountSignIn = () => {
   const dispatch = useDispatch();

@@ -1,15 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+// eslint-disable-next-line no-unused-vars
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import axios from "axios";
-import CartContext from "../../context/CartContext";
 import { useDispatch, useSelector } from "react-redux";
-import { getRestaurantThunk, getListingsThunk } from "@src/redux/thunks/restaurantThunks";
-import { addItemToCart } from "@src/redux/thunks/cartThunks";
+import { getRestaurantThunk, getListingsThunk } from "@src/redux/thunks/restaurantThunks.js";
+import { addItemToCart } from "@src/redux/thunks/cartThunks.js";
 
-const ShopDetail = () => {
+const RestaurantDetails = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
-    const { cartRestaurantId, setCartRestaurantId, addToCart } = useContext(CartContext);
     const [errorMessage, setErrorMessage] = useState("");
 
     const restaurant = useSelector((state) => state.restaurant.selectedRestaurant);
@@ -70,4 +68,4 @@ const ShopDetail = () => {
     )
 }
 
-export default ShopDetail;
+export default RestaurantDetails;
