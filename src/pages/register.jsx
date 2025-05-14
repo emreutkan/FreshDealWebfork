@@ -13,6 +13,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   const userState = useSelector((state) => state.user);
   const {
@@ -40,10 +42,34 @@ const Register = () => {
     if (!email && !phoneNumber) {
       return false;
     }
-    if (!password) {
+    if (!password || password.length < 8) {
+      return false;
+    }
+    if (!agreedToTerms) {
       return false;
     }
     return true;
+  };
+
+  const checkPasswordStrength = (pwd) => {
+    let score = 0;
+
+    // Length check
+    if (pwd.length >= 8) score += 1;
+
+    // Complexity checks
+    if (/[A-Z]/.test(pwd)) score += 1;
+    if (/[0-9]/.test(pwd)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
+
+    setPasswordStrength(score);
+    return score;
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    dispatch(setPassword(newPassword));
+    checkPasswordStrength(newPassword);
   };
 
   const handleRegister = async (e) => {
@@ -133,187 +159,269 @@ const Register = () => {
     dispatch(setPhoneNumber(value));
   };
 
+  const renderPasswordStrength = () => {
+    const getColorClass = () => {
+      if (passwordStrength === 0) return 'bg-danger';
+      if (passwordStrength === 1) return 'bg-danger';
+      if (passwordStrength === 2) return 'bg-warning';
+      if (passwordStrength === 3) return 'bg-info';
+      return 'bg-success';
+    };
+
+    const getStrengthText = () => {
+      if (passwordStrength === 0) return 'Very Weak';
+      if (passwordStrength === 1) return 'Weak';
+      if (passwordStrength === 2) return 'Medium';
+      if (passwordStrength === 3) return 'Strong';
+      return 'Very Strong';
+    };
+
+    return (
+        <div className="mt-1">
+          <div className="d-flex justify-content-between align-items-center mb-1">
+            <small className="text-muted">Password Strength:</small>
+            <small className={`fw-bold ${getColorClass().replace('bg-', 'text-')}`}>{getStrengthText()}</small>
+          </div>
+          <div className="progress" style={{ height: '5px' }}>
+            <div
+                className={`progress-bar ${getColorClass()}`}
+                role="progressbar"
+                style={{ width: `${(passwordStrength / 4) * 100}%` }}
+                aria-valuenow={passwordStrength}
+                aria-valuemin="0"
+                aria-valuemax="4">
+            </div>
+          </div>
+        </div>
+    );
+  };
+
   return (
       <div>
         <ScrollToTop/>
         <section className="my-lg-14 my-8">
           <div className="container">
-            {/* row */}
             <div className="row justify-content-center align-items-center">
-              <div className="col-12 col-md-6 col-lg-4 order-lg-1 order-2">
-                {/* img */}
+              <div className="col-12 col-md-6 col-lg-5 order-lg-1 order-2">
                 <img
                     src={signupimage}
                     alt="freshcart"
                     className="img-fluid"
                 />
               </div>
-              {/* col */}
-              <div className="col-12 col-md-6 offset-lg-1 col-lg-4 order-lg-2 order-1">
-                <div className="mb-lg-9 mb-5">
+
+              <div className="col-12 col-md-6 offset-lg-1 col-lg-5 order-lg-2 order-1">
+                <div className="mb-lg-7 mb-4">
                   <h1 className="mb-1 h2 fw-bold">
-                    {!isCodeSent ? "Get Started Shopping" : "Verify Email"}
+                    {!isCodeSent ? "Create your account" : "Verify your email"}
                   </h1>
-                  <p>
+                  <p className="mb-0 text-muted">
                     {!isCodeSent
-                        ? "Welcome to FreshDeal! Fill in your details to create an account."
-                        : "Enter the 6-digit code sent to your email."
+                        ? "Join FreshDeal to reduce food waste while saving money!"
+                        : "Enter the 6-digit code sent to your email address."
                     }
                   </p>
                 </div>
 
-                {/* Error display */}
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
                       {error}
+                      <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 )}
 
-                {/* Registration form */}
-                {!isCodeSent ? (
-                    <form onSubmit={handleRegister}>
-                      <div className="row g-3">
-                        {/* Name input */}
-                        <div className="col-12">
-                          <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Full Name"
-                              value={name_surname}
-                              onChange={(e) => dispatch(setName(e.target.value))}
-                              required
-                          />
-                        </div>
+                <div className="card shadow border-0 mb-3">
+                  <div className="card-body p-lg-5 p-4">
+                    {!isCodeSent ? (
+                        <form onSubmit={handleRegister}>
+                          <div className="row g-3">
+                            <div className="col-12">
+                              <div className="form-floating">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="fullName"
+                                    placeholder="Full Name"
+                                    value={name_surname}
+                                    onChange={(e) => dispatch(setName(e.target.value))}
+                                    required
+                                />
+                                <label htmlFor="fullName">Full Name</label>
+                              </div>
+                            </div>
 
-                        {/* Email input */}
-                        <div className="col-12">
-                          <input
-                              type="email"
-                              className="form-control"
-                              placeholder="Email"
-                              value={email}
-                              onChange={(e) => dispatch(setEmail(e.target.value))}
-                              required
-                          />
-                        </div>
+                            <div className="col-12">
+                              <div className="form-floating">
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    id="emailAddress"
+                                    placeholder="Email"
+                                    value={email}
+                                    onChange={(e) => dispatch(setEmail(e.target.value))}
+                                    required
+                                />
+                                <label htmlFor="emailAddress">Email Address</label>
+                              </div>
+                            </div>
 
-                        {/* Phone number input with area code selector */}
-                        <div className="col-12">
-                          <div className="input-group">
-                            <select
-                                className="form-select flex-grow-0"
-                                style={{ maxWidth: '120px' }}
-                                value={selectedCode}
-                                onChange={(e) => dispatch(setSelectedCode(e.target.value))}
-                            >
-                              {areaCodes.map((code) => (
-                                  <option key={code.code} value={code.code}>
-                                    {code.code} {code.country}
-                                  </option>
-                              ))}
-                            </select>
-                            <input
-                                type="tel"
-                                className="form-control"
-                                placeholder="Phone Number"
-                                value={phoneNumber}
-                                onChange={handlePhoneNumberChange}
-                            />
+                            <div className="col-12">
+                              <div className="input-group">
+                                <select
+                                    className="form-select flex-grow-0"
+                                    style={{ width: '120px' }}
+                                    value={selectedCode}
+                                    onChange={(e) => dispatch(setSelectedCode(e.target.value))}
+                                    aria-label="Country code"
+                                >
+                                  {areaCodes.map((code) => (
+                                      <option key={code.code} value={code.code}>
+                                        {code.code} {code.country}
+                                      </option>
+                                  ))}
+                                </select>
+                                <div className="form-floating flex-grow-1">
+                                  <input
+                                      type="tel"
+                                      className="form-control"
+                                      id="phoneNumber"
+                                      placeholder="Phone Number"
+                                      value={phoneNumber}
+                                      onChange={handlePhoneNumberChange}
+                                  />
+                                  <label htmlFor="phoneNumber">Phone Number</label>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="col-12">
+                              <div className="form-floating position-relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    className="form-control"
+                                    id="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    required
+                                />
+                                <label htmlFor="password">Password</label>
+                                <button
+                                    type="button"
+                                    className="btn position-absolute end-0 top-50 translate-middle-y me-3"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{ background: 'none', border: 'none' }}
+                                >
+                                  <i className={`bi bi-eye${showPassword ? '-slash' : ''}`}></i>
+                                </button>
+                              </div>
+                              {password && renderPasswordStrength()}
+                              <small className="text-muted d-block mt-1">
+                                Use 8+ characters with a mix of uppercase, lowercase, numbers & symbols.
+                              </small>
+                            </div>
+
+                            <div className="col-12">
+                              <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="agreeTerms"
+                                    checked={agreedToTerms}
+                                    onChange={() => setAgreedToTerms(!agreedToTerms)}
+                                    required
+                                />
+                                <label className="form-check-label" htmlFor="agreeTerms">
+                                  I agree to FreshDeal's <Link to="#!" className="text-success">Terms of Service</Link> & <Link to="#!" className="text-success">Privacy Policy</Link>
+                                </label>
+                              </div>
+                            </div>
+
+                            <div className="col-12 d-grid mt-3">
+                              <button
+                                  type="submit"
+                                  className="btn btn-success btn-lg"
+                                  disabled={loading || !validateInput()}
+                              >
+                                {loading ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                      Creating Account...
+                                    </>
+                                ) : (
+                                    "Create Account"
+                                )}
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleVerifyCode}>
+                          <div className="text-center mb-4">
+                            <div className="badge bg-light-success text-success p-3 mb-3">
+                              <i className="bi bi-envelope-check fs-4 d-block mb-1"></i>
+                              Verification Code Sent
+                            </div>
+                            <p className="text-muted">We've sent a 6-digit verification code to <strong>{email}</strong></p>
+                          </div>
 
-                        {/* Password input */}
-                        <div className="col-12 position-relative">
-                          <input
-                              type={showPassword ? "text" : "password"}
-                              className="form-control"
-                              placeholder="Password"
-                              value={password}
-                              onChange={(e) => dispatch(setPassword(e.target.value))}
-                              required
-                          />
-                          <button
-                              type="button"
-                              className="btn position-absolute end-0 top-0 mt-1 me-2"
-                              onClick={() => setShowPassword(!showPassword)}
-                              style={{ background: 'none', border: 'none' }}
-                          >
-                            <i className={`bi bi-eye${showPassword ? '-slash' : ''}`}></i>
-                          </button>
-                        </div>
+                          <div className="row g-3">
+                            <div className="col-12">
+                              <div className="form-floating">
+                                <input
+                                    type="text"
+                                    className="form-control text-center fs-4"
+                                    id="verificationCode"
+                                    placeholder="Verification code"
+                                    value={verificationCode}
+                                    onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                                    maxLength={6}
+                                    required
+                                />
+                                <label htmlFor="verificationCode">6-Digit Code</label>
+                              </div>
+                            </div>
 
-                        {/* Register button */}
-                        <div className="col-12 d-grid">
-                          <button
-                              type="submit"
-                              className="btn btn-primary"
-                              disabled={loading}
-                          >
-                            {loading ? "Registering..." : "Register"}
-                          </button>
-                        </div>
+                            <div className="col-12 d-grid mt-3">
+                              <button
+                                  type="submit"
+                                  className="btn btn-success btn-lg"
+                                  disabled={loading || verificationCode.length !== 6}
+                              >
+                                {loading ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                      Verifying...
+                                    </>
+                                ) : (
+                                    "Verify Email"
+                                )}
+                              </button>
+                            </div>
 
-                        {/* Login link */}
-                        <div className="col-12 text-center mt-3">
-                      <span>
-                        Already have an account?{" "}
-                        <Link to="/Login">Sign in</Link>
-                      </span>
-                        </div>
+                            <div className="col-12 text-center mt-3">
+                              <button
+                                  type="button"
+                                  className="btn btn-link text-success"
+                                  onClick={skipLoginUser}
+                              >
+                                Verify Later
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                    )}
+                  </div>
+                </div>
 
-                        {/* Terms text */}
-                        <div className="col-12 text-center">
-                          <p>
-                            <small>
-                              By continuing, you agree to our{" "}
-                              <Link to="#!"> Terms of Service</Link> &amp;{" "}
-                              <Link to="#!">Privacy Policy</Link>
-                            </small>
-                          </p>
-                        </div>
-                      </div>
-                    </form>
-                ) : (
-                    // Verification form
-                    <form onSubmit={handleVerifyCode}>
-                      <div className="row g-3">
-                        {/* Verification code input */}
-                        <div className="col-12">
-                          <input
-                              type="text"
-                              className="form-control text-center"
-                              placeholder="Enter 6-digit code"
-                              value={verificationCode}
-                              onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                              maxLength={6}
-                              required
-                          />
-                        </div>
-
-                        {/* Verify button */}
-                        <div className="col-12 d-grid">
-                          <button
-                              type="submit"
-                              className="btn btn-primary"
-                              disabled={loading || verificationCode.length !== 6}
-                          >
-                            {loading ? "Verifying..." : "Verify Email"}
-                          </button>
-                        </div>
-
-                        {/* Skip verification button */}
-                        <div className="col-12 text-center mt-3">
-                          <button
-                              type="button"
-                              className="btn btn-link"
-                              onClick={skipLoginUser}
-                          >
-                            Skip Verification
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                )}
+                <div className="card shadow border-0">
+                  <div className="card-body p-4 text-center">
+                    <div className="d-flex align-items-center justify-content-center gap-2">
+                      <span>Already have an account?</span>
+                      <Link to="/Login" className="text-success fw-semibold">Sign In</Link>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

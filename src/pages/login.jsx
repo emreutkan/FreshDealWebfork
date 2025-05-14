@@ -5,20 +5,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUserThunk } from "@src/redux/thunks/userThunks.js";
 import ScrollToTop from "./ScrollToTop.jsx";
 
-const MyAccountSignIn = () => {
+const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userState = useSelector((state) => state.user);
   const { isLoading, error, token } = userState;
 
-  const [loginType, setLoginType] = useState("email"); // Toggle between email and phone
+  const [loginType, setLoginType] = useState("email");
   const [formData, setFormData] = useState({
     email: "",
     phone_number: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
-  // Debug - Log token state when component mounts and when token changes
   useEffect(() => {
     console.log("Login Component - Initial Token State:", token);
   }, []);
@@ -38,23 +39,21 @@ const MyAccountSignIn = () => {
     const payload = {
       ...formData,
       login_type: loginType,
-      password_login: true, // Assuming password-based login
+      password_login: true,
     };
 
     console.log("Login - Before dispatch - User State:", userState);
     const result = await dispatch(loginUserThunk(payload));
     console.log("Login - After dispatch - Auth Result:", result);
 
-    // We need to get the current state AFTER the dispatch
     const currentToken = result.payload?.token;
     console.log("Login - After dispatch - Token:", currentToken);
 
     if (result.payload?.success) {
       console.log("Login Successful - Token before navigation:", currentToken);
-      // Store debugging info in sessionStorage to track token across page navigations
       sessionStorage.setItem('lastLoginToken', currentToken);
       sessionStorage.setItem('loginTimestamp', new Date().toISOString());
-      navigate("/"); // Forwarding user upon successful login
+      navigate("/");
     }
   };
 
@@ -63,136 +62,155 @@ const MyAccountSignIn = () => {
         <ScrollToTop />
         <section className="my-lg-14 my-8">
           <div className="container">
-            {/* row */}
             <div className="row justify-content-center align-items-center">
-              <div className="col-12 col-md-6 col-lg-4 order-lg-1 order-2">
-                {/* img */}
+              <div className="col-12 col-md-6 col-lg-5 order-lg-1 order-2">
                 <img src={signinimage} alt="freshcart" className="img-fluid" />
               </div>
-              {/* col */}
-              <div className="col-12 col-md-6 offset-lg-1 col-lg-4 order-lg-2 order-1">
+
+              <div className="col-12 col-md-6 offset-lg-1 col-lg-5 order-lg-2 order-1">
                 <div className="mb-lg-9 mb-5">
-                  <h1 className="mb-1 h2 fw-bold">Sign in to FreshDeal</h1>
-                  <p>
-                    Welcome back to FreshDeal! Enter your email or phone number to
-                    get started.
+                  <h1 className="mb-1 h2 fw-bold">Welcome back to FreshDeal</h1>
+                  <p className="mb-0 text-muted">
+                    Save money and reduce waste by purchasing surplus food at discounted prices.
                   </p>
                 </div>
-                <form onSubmit={handleSubmit}>
-                  <div className="row g-3">
-                    {/* Toggle for login type */}
-                    <div className="col-12">
-                      <div className="form-check form-check-inline">
-                        <input
-                            className="form-check-input"
-                            type="radio"
-                            name="loginType"
-                            id="emailLogin"
-                            value="email"
-                            checked={loginType === "email"}
-                            onChange={() => setLoginType("email")}
-                        />
-                        <label
-                            className="form-check-label"
-                            htmlFor="emailLogin"
+
+                <div className="card shadow border-0 mb-3">
+                  <div className="card-body p-lg-5 p-4">
+                    <div className="d-flex align-items-center justify-content-between mb-4">
+                      <div className="btn-group login-type-toggle w-100" role="group">
+                        <button
+                            type="button"
+                            className={`btn ${loginType === "email" ? "btn-success" : "btn-outline-secondary"}`}
+                            onClick={() => setLoginType("email")}
                         >
-                          Email
-                        </label>
-                      </div>
-                      <div className="form-check form-check-inline">
-                        <input
-                            className="form-check-input"
-                            type="radio"
-                            name="loginType"
-                            id="phoneLogin"
-                            value="phone"
-                            checked={loginType === "phone"}
-                            onChange={() => setLoginType("phone")}
-                        />
-                        <label
-                            className="form-check-label"
-                            htmlFor="phoneLogin"
+                          <i className="bi bi-envelope me-2"></i>Email
+                        </button>
+                        <button
+                            type="button"
+                            className={`btn ${loginType === "phone" ? "btn-success" : "btn-outline-secondary"}`}
+                            onClick={() => setLoginType("phone")}
                         >
-                          Phone
-                        </label>
+                          <i className="bi bi-phone me-2"></i>Phone
+                        </button>
                       </div>
                     </div>
 
-                    {/* Email or Phone input */}
-                    {loginType === "email" ? (
-                        <div className="col-12">
-                          <input
-                              type="email"
-                              className="form-control"
-                              id="inputEmail"
-                              name="email"
-                              placeholder="Email"
-                              value={formData.email}
-                              onChange={handleChange}
-                              required
-                          />
-                        </div>
-                    ) : (
-                        <div className="col-12">
-                          <input
-                              type="tel"
-                              className="form-control"
-                              id="inputPhone"
-                              name="phone_number"
-                              placeholder="Phone Number"
-                              value={formData.phone_number}
-                              onChange={handleChange}
-                              required
-                          />
-                        </div>
-                    )}
+                    <form onSubmit={handleSubmit}>
+                      <div className="row g-3">
+                        {loginType === "email" ? (
+                            <div className="col-12">
+                              <div className="form-floating">
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    id="inputEmail"
+                                    name="email"
+                                    placeholder="name@example.com"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label htmlFor="inputEmail">Email Address</label>
+                              </div>
+                            </div>
+                        ) : (
+                            <div className="col-12">
+                              <div className="form-floating">
+                                <input
+                                    type="tel"
+                                    className="form-control"
+                                    id="inputPhone"
+                                    name="phone_number"
+                                    placeholder="Phone Number"
+                                    value={formData.phone_number}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <label htmlFor="inputPhone">Phone Number</label>
+                              </div>
+                            </div>
+                        )}
 
-                    {/* Password input */}
-                    <div className="col-12">
-                      <input
-                          type="password"
-                          className="form-control"
-                          id="inputPassword"
-                          name="password"
-                          placeholder="Password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                      />
-                    </div>
-
-                    {/* Error display */}
-                    {error && (
                         <div className="col-12">
-                          <div className="alert alert-danger" role="alert">
-                            {userState.error?.payload?.message || error}
+                          <div className="form-floating position-relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="form-control"
+                                id="inputPassword"
+                                name="password"
+                                placeholder="Password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                            />
+                            <label htmlFor="inputPassword">Password</label>
+                            <button
+                                type="button"
+                                className="btn position-absolute end-0 top-50 translate-middle-y me-3"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{ background: 'none', border: 'none' }}
+                            >
+                              <i className={`bi bi-eye${showPassword ? '-slash' : ''}`}></i>
+                            </button>
                           </div>
                         </div>
-                    )}
 
-                    {/* Submit button */}
-                    <div className="col-12">
-                      <button
-                          type="submit"
-                          className="btn btn-primary w-100"
-                          disabled={isLoading}
-                      >
-                        {isLoading ? "Signing In..." : "Sign In"}
-                      </button>
-                    </div>
+                        <div className="d-flex justify-content-between">
+                          <div className="form-check">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="rememberMe"
+                                checked={rememberMe}
+                                onChange={() => setRememberMe(!rememberMe)}
+                            />
+                            <label className="form-check-label" htmlFor="rememberMe">
+                              Remember me
+                            </label>
+                          </div>
+                          <div>
+                            <Link to="/forgot-password" className="text-success">Forgot password?</Link>
+                          </div>
+                        </div>
 
-                    {/* Register button - redirects to /register */}
-                    <div className="col-12 mt-3">
-                      <button
-                          type="button"
-                          className="btn btn-outline-secondary w-100"
-                          onClick={() => navigate("/register")}
-                      >
-                        Create New Account
-                      </button>
+                        {error && (
+                            <div className="col-12">
+                              <div className="alert alert-danger" role="alert">
+                                {userState.error?.payload?.message || error}
+                              </div>
+                            </div>
+                        )}
+
+                        <div className="col-12 d-grid mt-4">
+                          <button
+                              type="submit"
+                              className="btn btn-success btn-lg"
+                              disabled={isLoading}
+                          >
+                            {isLoading ? (
+                                <>
+                                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                  Signing In...
+                                </>
+                            ) : (
+                                "Sign In"
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <div className="card shadow border-0">
+                  <div className="card-body p-4 text-center">
+                    <div className="d-flex align-items-center justify-content-center gap-2">
+                      <span>Don't have an account?</span>
+                      <Link to="/register" className="text-success fw-semibold">Create Account</Link>
                     </div>
                   </div>
-                </form>
+                </div>
               </div>
             </div>
           </div>
@@ -201,4 +219,4 @@ const MyAccountSignIn = () => {
   );
 };
 
-export default MyAccountSignIn;
+export default Login;
