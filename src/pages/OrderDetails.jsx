@@ -49,7 +49,10 @@ const NEGATIVE_BADGES = [
 ];
 
 const OrderDetails = () => {
-    const { orderId } = useParams();
+    const params = useParams();
+    const orderId = params.id;
+    console.log(useParams());
+    console.log("Order ID:", orderId);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { currentOrder, loadingCurrentOrder } = useSelector(
@@ -64,12 +67,25 @@ const OrderDetails = () => {
     const [reportComment, setReportComment] = useState('');
     const [uploadProgress, setUploadProgress] = useState(0);
     const [showReportModal, setShowReportModal] = useState(false);
-    const [headerVisible, setHeaderVisible] = useState(false);
 
     const fileInputRef = useRef(null);
 
     useEffect(() => {
-        dispatch(fetchOrderDetailsAsync(orderId));
+        const fetchOrder = async () => {
+            try {
+                if (!orderId) {
+                    console.error("Order ID is missing from URL parameters");
+                    return;
+                }
+                await dispatch(fetchOrderDetailsAsync(orderId));
+            } catch (err) {
+                console.error("Error fetching order details:", err);
+            }
+        };
+
+        if (orderId) {
+            fetchOrder();
+        }
     }, [dispatch, orderId]);
 
     useEffect(() => {
@@ -77,19 +93,6 @@ const OrderDetails = () => {
             setSelectedBadges([]);
         }
     }, [rating]);
-
-    const handleScroll = () => {
-        if (window.scrollY > 100) {
-            setHeaderVisible(true);
-        } else {
-            setHeaderVisible(false);
-        }
-    };
-
-    useEffect(() => {
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     const handleBadgeToggle = (badgeId) => {
         setSelectedBadges(prevBadges => {
@@ -227,28 +230,32 @@ const OrderDetails = () => {
     };
 
     const renderOrderStatus = () => {
-        if (!currentOrder.completion_image_url && currentOrder.status !== 'COMPLETED') {
-            return (
-                <div className="status-container">
-                    <div className="status-icon-container">
-                        <i className="bi bi-hourglass"></i>
+        if (!currentOrder) return null;
+
+        if (!currentOrder.hasOwnProperty('completion_image_url') || !currentOrder.completion_image_url) {
+            if (currentOrder.status !== 'COMPLETED') {
+                return (
+                    <div className="status-container">
+                        <div className="status-icon-container">
+                            <i className="bi bi-hourglass"></i>
+                        </div>
+                        <p className="status-text">
+                            Waiting for restaurant to prepare and upload the food image
+                        </p>
                     </div>
-                    <p className="status-text">
-                        Waiting for restaurant to prepare and upload the food image
-                    </p>
-                </div>
-            );
-        } else if (!currentOrder.completion_image_url && currentOrder.status === 'COMPLETED') {
-            return (
-                <div className="status-container error">
-                    <div className="status-icon-container">
-                        <i className="bi bi-exclamation-circle"></i>
+                );
+            } else {
+                return (
+                    <div className="status-container error">
+                        <div className="status-icon-container">
+                            <i className="bi bi-exclamation-circle"></i>
+                        </div>
+                        <p className="status-text error-text">
+                            Backend Error: Completion image missing
+                        </p>
                     </div>
-                    <p className="status-text error-text">
-                        Backend Error: Completion image missing
-                    </p>
-                </div>
-            );
+                );
+            }
         }
 
         return (
@@ -439,6 +446,20 @@ const OrderDetails = () => {
         </div>
     );
 
+    if (!orderId) {
+        return (
+            <div className="loading-container">
+                <p className="text-danger">Error: No order ID found in URL</p>
+                <button
+                    className="btn btn-primary mt-2"
+                    onClick={() => navigate('/orders')}
+                >
+                    Return to Orders
+                </button>
+            </div>
+        );
+    }
+
     if (loadingCurrentOrder || !currentOrder) {
         return (
             <div className="loading-container">
@@ -452,7 +473,7 @@ const OrderDetails = () => {
 
     return (
         <div className="order-details-container">
-            <div className={`sticky-header ${headerVisible ? 'visible' : ''}`}>
+            <div className={`sticky-header visible`}>
                 <div className="container">
                     <div className="header-content">
                         <button className="back-button" onClick={() => navigate(-1)}>
@@ -469,10 +490,6 @@ const OrderDetails = () => {
                         )}
                     </div>
                 </div>
-            </div>
-
-            <div className="floating-back-button" onClick={() => navigate(-1)}>
-                <i className="bi bi-arrow-left"></i>
             </div>
 
             <div className="container">
@@ -588,13 +605,13 @@ const OrderDetails = () => {
                     background-color: #F8F9FA;
                     padding-bottom: 40px;
                 }
-                
+
                 .container {
                     max-width: 800px;
                     margin: 0 auto;
                     padding: 0 15px;
                 }
-                
+
                 .loading-container {
                     display: flex;
                     flex-direction: column;
@@ -602,42 +619,46 @@ const OrderDetails = () => {
                     align-items: center;
                     min-height: 60vh;
                 }
-                
+
                 .loading-text {
                     margin-top: 12px;
                     color: #666;
                     font-size: 16px;
                 }
-                
+
                 .sticky-header {
-                    position: fixed;
-                    top: -70px;
-                    left: 0;
-                    right: 0;
-                    background-color: white;
-                    z-index: 1000;
-                    padding: 15px 0;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                    transition: top 0.3s;
+                    background-color: #FFFFFF;
+                    padding-bottom: 10px;
+                    border-bottom-left-radius: 20px;
+                    border-bottom-right-radius: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                    position: sticky;
+                    //top: 0;
+                    z-index: 10;
                 }
-                
-                .sticky-header.visible {
-                    top: 0;
-                }
-                
+
                 .header-content {
                     display: flex;
                     align-items: center;
+                    padding: 16px 20px;
                 }
-                
+
                 .back-button {
                     background: none;
                     border: none;
                     font-size: 20px;
                     color: #333;
                     cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40px;
+                    height: 40px;
+                    left: 0;
+                    border-radius: 20px;
+                    transition: background-color 0.2s;
                 }
-                
+
                 .header-title {
                     flex: 1;
                     text-align: center;
@@ -649,7 +670,7 @@ const OrderDetails = () => {
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
-                
+
                 .report-button {
                     width: 40px;
                     height: 40px;
@@ -663,44 +684,22 @@ const OrderDetails = () => {
                     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     cursor: pointer;
                 }
-                
-                .floating-back-button {
-                    position: fixed;
-                    top: 20px;
-                    left: 20px;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 20px;
-                    background-color: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-                    cursor: pointer;
-                    z-index: 900;
-                    transition: opacity 0.3s;
-                }
-                
-                .sticky-header.visible + .floating-back-button {
-                    opacity: 0;
-                    pointer-events: none;
-                }
-                
+
                 .order-details-content {
                     padding-top: 20px;
                 }
-                
+
                 .hero-section {
                     padding: 20px 0;
                 }
-                
+
                 .order-title {
                     font-size: 24px;
                     color: #333;
                     font-weight: 600;
                     margin-bottom: 16px;
                 }
-                
+
                 .status-badge {
                     display: inline-flex;
                     align-items: center;
@@ -712,24 +711,24 @@ const OrderDetails = () => {
                     font-weight: 600;
                     margin-bottom: 16px;
                 }
-                
+
                 .order-id-row {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                 }
-                
+
                 .order-id {
                     font-size: 14px;
                     color: #666;
                     font-weight: 500;
                 }
-                
+
                 .order-date {
                     font-size: 14px;
                     color: #666;
                 }
-                
+
                 .status-container {
                     display: flex;
                     align-items: center;
@@ -738,11 +737,11 @@ const OrderDetails = () => {
                     padding: 16px;
                     margin-bottom: 20px;
                 }
-                
+
                 .status-container.error {
                     background-color: #FFEBEE;
                 }
-                
+
                 .status-icon-container {
                     width: 40px;
                     height: 40px;
@@ -755,22 +754,22 @@ const OrderDetails = () => {
                     color: #FFA500;
                     font-size: 20px;
                 }
-                
+
                 .status-container.error .status-icon-container {
                     color: #FF0000;
                 }
-                
+
                 .status-text {
                     flex: 1;
                     font-size: 14px;
                     color: #666;
                     margin: 0;
                 }
-                
+
                 .error-text {
                     color: #FF0000;
                 }
-                
+
                 .image-container {
                     width: 100%;
                     height: 300px;
@@ -779,13 +778,13 @@ const OrderDetails = () => {
                     border-radius: 12px;
                     overflow: hidden;
                 }
-                
+
                 .completion-image {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                 }
-                
+
                 .image-gradient {
                     position: absolute;
                     top: 0;
@@ -794,7 +793,7 @@ const OrderDetails = () => {
                     height: 100px;
                     background: linear-gradient(to bottom, rgba(0,0,0,0.4), transparent);
                 }
-                
+
                 .status-badge-completed {
                     position: absolute;
                     bottom: 16px;
@@ -807,7 +806,7 @@ const OrderDetails = () => {
                     font-weight: 600;
                     text-transform: uppercase;
                 }
-                
+
                 .card {
                     background-color: white;
                     border-radius: 16px;
@@ -815,36 +814,36 @@ const OrderDetails = () => {
                     margin-bottom: 20px;
                     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
                 }
-                
+
                 .section-header {
                     display: flex;
                     align-items: center;
                     margin-bottom: 16px;
                 }
-                
+
                 .section-header i {
                     font-size: 20px;
                     color: #50703C;
                 }
-                
+
                 .section-title {
                     font-size: 18px;
                     font-weight: 600;
                     color: #333;
                     margin: 0 0 0 8px;
                 }
-                
+
                 .detail-row {
                     display: flex;
                     align-items: center;
                     padding: 10px 0;
                     border-bottom: 1px solid #F0F0F0;
                 }
-                
+
                 .detail-row:last-child {
                     border-bottom: none;
                 }
-                
+
                 .detail-icon-container {
                     width: 32px;
                     height: 32px;
@@ -856,32 +855,32 @@ const OrderDetails = () => {
                     margin-right: 12px;
                     color: #50703C;
                 }
-                
+
                 .detail-label {
                     flex: 1;
                     font-size: 14px;
                     color: #666;
                 }
-                
+
                 .detail-value {
                     font-size: 14px;
                     color: #333;
                     font-weight: 500;
                     text-align: right;
                 }
-                
+
                 .address-container {
                     background-color: #F8F8F8;
                     border-radius: 12px;
                     padding: 16px;
                 }
-                
+
                 .address-text {
                     font-size: 14px;
                     color: #333;
                     margin-bottom: 8px;
                 }
-                
+
                 .notes-container {
                     background-color: white;
                     border-radius: 8px;
@@ -889,7 +888,7 @@ const OrderDetails = () => {
                     margin-top: 8px;
                     border-left: 4px solid #50703C;
                 }
-                
+
                 .notes-label {
                     font-size: 12px;
                     color: #666;
@@ -897,13 +896,13 @@ const OrderDetails = () => {
                     display: block;
                     margin-bottom: 4px;
                 }
-                
+
                 .notes-text {
                     font-size: 14px;
                     color: #333;
                     margin: 0;
                 }
-                
+
                 .rating-section {
                     background-color: white;
                     border-radius: 16px;
@@ -911,20 +910,20 @@ const OrderDetails = () => {
                     margin-bottom: 20px;
                     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
                 }
-                
+
                 .rating-prompt {
                     font-size: 16px;
                     color: #333;
                     margin-bottom: 8px;
                     text-align: center;
                 }
-                
+
                 .rating-container {
                     display: flex;
                     justify-content: center;
                     margin-bottom: 24px;
                 }
-                
+
                 .star-button {
                     background: none;
                     border: none;
@@ -933,36 +932,36 @@ const OrderDetails = () => {
                     cursor: pointer;
                     padding: 0;
                 }
-                
+
                 .badge-selector-container {
                     margin-bottom: 24px;
                 }
-                
+
                 .badge-selector-title {
                     font-size: 16px;
                     color: #333;
                     font-weight: 600;
                     margin-bottom: 16px;
                 }
-                
+
                 .badges-grid {
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
                     gap: 12px;
                 }
-                
+
                 @media (max-width: 768px) {
                     .badges-grid {
                         grid-template-columns: repeat(2, 1fr);
                     }
                 }
-                
+
                 @media (max-width: 480px) {
                     .badges-grid {
                         grid-template-columns: 1fr;
                     }
                 }
-                
+
                 .badge-item {
                     background-color: white;
                     border-radius: 12px;
@@ -975,22 +974,22 @@ const OrderDetails = () => {
                     cursor: pointer;
                     transition: all 0.2s;
                 }
-                
+
                 .badge-item:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 }
-                
+
                 .badge-item.positive-selected {
                     background-color: #50703C;
                     border-color: #50703C;
                 }
-                
+
                 .badge-item.negative-selected {
                     background-color: #D32F2F;
                     border-color: #D32F2F;
                 }
-                
+
                 .badge-icon-container {
                     width: 50px;
                     height: 50px;
@@ -1001,15 +1000,15 @@ const OrderDetails = () => {
                     margin-bottom: 8px;
                     font-size: 24px;
                 }
-                
+
                 .badge-icon-container.positive {
                     background-color: rgba(80, 112, 60, 0.1);
                 }
-                
+
                 .badge-icon-container.negative {
                     background-color: rgba(211, 47, 47, 0.1);
                 }
-                
+
                 .badge-name {
                     font-size: 14px;
                     color: #333;
@@ -1017,15 +1016,15 @@ const OrderDetails = () => {
                     text-align: center;
                     margin-bottom: 4px;
                 }
-                
+
                 .badge-name.negative {
                     color: #D32F2F;
                 }
-                
+
                 .badge-name.selected {
                     color: white;
                 }
-                
+
                 .badge-description {
                     font-size: 10px;
                     color: #999;
@@ -1035,22 +1034,22 @@ const OrderDetails = () => {
                     -webkit-box-orient: vertical;
                     overflow: hidden;
                 }
-                
+
                 .badge-description.negative {
                     color: rgba(211, 47, 47, 0.7);
                 }
-                
+
                 .badge-description.selected {
                     color: rgba(255, 255, 255, 0.9);
                 }
-                
+
                 .input-label {
                     font-size: 16px;
                     color: #333;
                     margin-bottom: 8px;
                     display: block;
                 }
-                
+
                 .comment-input {
                     width: 100%;
                     min-height: 120px;
@@ -1063,7 +1062,7 @@ const OrderDetails = () => {
                     margin-bottom: 16px;
                     resize: vertical;
                 }
-                
+
                 .submit-button {
                     width: 100%;
                     background-color: #50703C;
@@ -1076,24 +1075,24 @@ const OrderDetails = () => {
                     cursor: pointer;
                     transition: background-color 0.2s;
                 }
-                
+
                 .submit-button:hover {
                     background-color: #455f31;
                 }
-                
+
                 .submit-button:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
                 }
-                
+
                 .submit-button.negative {
                     background-color: #D32F2F;
                 }
-                
+
                 .submit-button.negative:hover {
                     background-color: #C62828;
                 }
-                
+
                 /* Report Modal Styles */
                 .report-modal-overlay {
                     position: fixed;
@@ -1111,12 +1110,12 @@ const OrderDetails = () => {
                     transition: opacity 0.3s, visibility 0.3s;
                     padding: 20px;
                 }
-                
+
                 .report-modal-overlay.show {
                     opacity: 1;
                     visibility: visible;
                 }
-                
+
                 .report-modal {
                     background-color: white;
                     border-radius: 16px;
@@ -1128,25 +1127,25 @@ const OrderDetails = () => {
                     transform: translateY(20px);
                     transition: transform 0.3s;
                 }
-                
+
                 .report-modal-overlay.show .report-modal {
                     transform: translateY(0);
                 }
-                
+
                 .report-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     margin-bottom: 24px;
                 }
-                
+
                 .report-title {
                     font-size: 20px;
                     color: #333;
                     font-weight: 600;
                     margin: 0;
                 }
-                
+
                 .close-button {
                     background: none;
                     border: none;
@@ -1154,7 +1153,7 @@ const OrderDetails = () => {
                     color: #666;
                     cursor: pointer;
                 }
-                
+
                 .image-upload-container {
                     height: 220px;
                     background-color: #F8F8F8;
@@ -1169,30 +1168,30 @@ const OrderDetails = () => {
                     position: relative;
                     overflow: hidden;
                 }
-                
+
                 .image-upload-container i {
                     font-size: 50px;
                     color: #CCCCCC;
                 }
-                
+
                 .upload-text {
                     font-size: 16px;
                     color: #666;
                     font-weight: 500;
                     margin: 12px 0 4px;
                 }
-                
+
                 .upload-subtext {
                     font-size: 14px;
                     color: #999;
                 }
-                
+
                 .uploaded-image {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                 }
-                
+
                 .change-image-button {
                     position: absolute;
                     bottom: 16px;
@@ -1205,7 +1204,7 @@ const OrderDetails = () => {
                     font-size: 12px;
                     cursor: pointer;
                 }
-                
+
                 .report-comment-input {
                     width: 100%;
                     min-height: 150px;
@@ -1218,7 +1217,7 @@ const OrderDetails = () => {
                     margin-bottom: 24px;
                     resize: vertical;
                 }
-                
+
                 .progress-container {
                     height: 8px;
                     background-color: #F5F5F5;
@@ -1227,13 +1226,13 @@ const OrderDetails = () => {
                     position: relative;
                     overflow: hidden;
                 }
-                
+
                 .progress-bar {
                     height: 100%;
                     background-color: #50703C;
                     border-radius: 4px;
                 }
-                
+
                 .progress-text {
                     position: absolute;
                     width: 100%;
@@ -1243,7 +1242,7 @@ const OrderDetails = () => {
                     top: -20px;
                     margin: 0;
                 }
-                
+
                 .report-submit-button {
                     width: 100%;
                     background-color: #FF6B6B;
@@ -1256,11 +1255,11 @@ const OrderDetails = () => {
                     cursor: pointer;
                     transition: background-color 0.2s;
                 }
-                
+
                 .report-submit-button:hover {
                     background-color: #FF5252;
                 }
-                
+
                 .report-submit-button.disabled {
                     background-color: #CCCCCC;
                     cursor: not-allowed;
