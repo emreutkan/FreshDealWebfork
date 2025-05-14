@@ -13,6 +13,11 @@ import Login from "./pages/login.jsx";
 import Register from "./pages/register.jsx";
 import ErrorPage from "@src/pages/ErrorPage";
 import GlobalResetContext from "@src/context/GlobalResetContext";
+import Cart from "@src/pages/Cart.jsx";
+import Checkout from "@src/pages/Checkout.jsx";
+import Account from "@src/pages/Account.jsx";
+import Orders from "@src/pages/Orders.jsx";
+import OrderDetails from "@src/pages/OrderDetails.jsx";
 
 function App() {
     const { resetKey } = useContext(GlobalResetContext);
@@ -28,6 +33,11 @@ function App() {
                         <Route path="/Address" element={<><AddressSelection /></>} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/Register" element={<Register />} />
+                        <Route path="/Cart" element={<Cart />} />
+                        <Route path="/Account" element={<Account />} />
+                        <Route path="/Checkout" element={<Checkout />} />
+                        <Route path="/Orders" element={<Orders />} />
+                        <Route path="/order/:id" element={<OrderDetails />} />
 
                         <Route path="*" element={<ErrorPage />} />
                     </Routes>
