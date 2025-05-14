@@ -1,15 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import AddressBar from "../components/AddressBar";
 import RestaurantList from "../components/RestaurantList";
 import RecentRestaurants from "../components/RecentRestaurants";
 import FavoriteRestaurantList from "../components/FavoriteRestaurantList";
 import { MagnifyingGlass } from "react-loader-spinner";
 import RestaurantMap from "../components/RestaurantMap";
+import { getRestaurantsByProximity } from "../redux/thunks/restaurantThunks";
+import { SearchforRestaurantsThunk } from "../redux/thunks/searchThunks";
+import debounce from 'lodash/debounce';
 
 function HomeRestaurantView() {
     // States for component
     const [loaderStatus, setLoaderStatus] = useState(true);
+    const [searchText, setSearchText] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [recentSearches, setRecentSearches] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const searchInputRef = useRef(null);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    // Selectors
+    const searchResults = useSelector((state) =>
+        state.search.searchResults?.results ?? []
+    );
+    const restaurants = useSelector((state) =>
+        state.restaurant.restaurantsProximity ?? []
+    );
+
+    // Filtered restaurants logic
+    const filteredRestaurants = searchText === ""
+        ? restaurants
+        : restaurants.filter((restaurant) =>
+            searchResults
+                .map(result => result.id)
+                .includes(Number(restaurant?.id))
+        );
+
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        debounce((text) => {
+            if (text) {
+                setIsSearching(true);
+                dispatch(SearchforRestaurantsThunk({
+                    type: 'restaurant',
+                    query: text,
+                })).finally(() => setIsSearching(false));
+            }
+        }, 500),
+        []
+    );
+
+    const handleSearch = (e) => {
+        const text = e.target.value;
+        setSearchText(text);
+        debouncedSearch(text);
+
+        // Save to recent searches when user submits
+        if (text && !recentSearches.includes(text)) {
+            setRecentSearches(prev => [text, ...prev].slice(0, 5)); // Keep last 5 searches
+        }
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (searchText && filteredRestaurants.length > 0) {
+            // Navigate to the first restaurant result
+            navigate(`/restaurant/${filteredRestaurants[0].id}`);
+        }
+    };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        dispatch(getRestaurantsByProximity())
+            .finally(() => setRefreshing(false));
+    }, []);
+
+    // Clear search
+    const handleClearSearch = () => {
+        setSearchText("");
+        searchInputRef.current?.focus();
+    };
+
+    const handleRecentSearchClick = (term) => {
+        setSearchText(term);
+        debouncedSearch(term);
+    };
+
+    useEffect(() => {
+        dispatch(getRestaurantsByProximity());
+    }, []);
 
     // Loading effect
     useEffect(() => {
@@ -50,8 +134,130 @@ function HomeRestaurantView() {
                         <div className="col-md-8 col-lg-6">
                             <h1 className="fw-bold mb-4" style={{ fontSize: "2.5rem", color: "white" }}>Reduce Food Waste, Save Money</h1>
                             <p className="lead fs-4 mb-4">Connect with local restaurants offering surplus food at discounted prices</p>
-                            <div className="mt-4">
-                                <AddressBar />
+
+                            <div className="mt-4 position-relative">
+                                <div className="search-container">
+                                    <form onSubmit={handleSearchSubmit}>
+                                        <div className="search-input-container">
+                                            <i className="bi bi-search search-icon"></i>
+                                            <input
+                                                ref={searchInputRef}
+                                                type="text"
+                                                className="search-input"
+                                                placeholder="Search for restaurants..."
+                                                value={searchText}
+                                                onChange={handleSearch}
+                                                onFocus={() => setIsSearchFocused(true)}
+                                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                            />
+                                            {searchText.length > 0 && (
+                                                <button type="button" className="clear-button" onClick={handleClearSearch}>
+                                                    <i className="bi bi-x-circle"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </form>
+
+                                    {isSearchFocused && (
+                                        <div className="search-results-container">
+                                            {isSearching ? (
+                                                <div className="search-loading">
+                                                    <div className="spinner-border spinner-border-sm text-success" role="status">
+                                                        <span className="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <span className="ms-2">Searching...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="search-results">
+                                                    {searchText.length > 0 ? (
+                                                        <>
+                                                            <div className="results-header">
+                                                                <span className="results-count">{filteredRestaurants.length} results found</span>
+                                                            </div>
+
+                                                            <div className="results-list">
+                                                                {filteredRestaurants.length > 0 ? (
+                                                                    filteredRestaurants.slice(0, 5).map(restaurant => (
+                                                                        <div
+                                                                            key={restaurant.id}
+                                                                            className="result-item"
+                                                                            onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                                                                        >
+                                                                            <div className="result-image">
+                                                                                {restaurant.image_url ? (
+                                                                                    <img src={restaurant.image_url} alt={restaurant.restaurantName} />
+                                                                                ) : (
+                                                                                    <div className="no-image">
+                                                                                        <i className="bi bi-shop"></i>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <div className="result-info">
+                                                                                <h5 className="result-title">{restaurant.restaurantName}</h5>
+                                                                                <div className="result-meta">
+                                                                                    <span className="result-distance">
+                                                                                        <i className="bi bi-geo-alt me-1"></i>
+                                                                                        {restaurant.distance_km ? `${restaurant.distance_km.toFixed(1)} km` : 'Distance unavailable'}
+                                                                                    </span>
+                                                                                    <span className="result-rating">
+                                                                                        <i className="bi bi-star-fill me-1 text-warning"></i>
+                                                                                        {restaurant.rating ? restaurant.rating.toFixed(1) : 'New'}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <i className="bi bi-chevron-right result-arrow"></i>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="no-results">
+                                                                        <p>No restaurants found matching "{searchText}"</p>
+                                                                    </div>
+                                                                )}
+
+                                                                {filteredRestaurants.length > 5 && (
+                                                                    <button
+                                                                        className="view-all-btn"
+                                                                        onClick={() => navigate('/search', { state: { query: searchText } })}
+                                                                    >
+                                                                        View all {filteredRestaurants.length} results
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="recent-searches">
+                                                            {recentSearches.length > 0 ? (
+                                                                <>
+                                                                    <h6 className="recent-title">Recent Searches</h6>
+                                                                    <div className="recent-list">
+                                                                        {recentSearches.map((term, index) => (
+                                                                            <div
+                                                                                key={index}
+                                                                                className="recent-item"
+                                                                                onClick={() => handleRecentSearchClick(term)}
+                                                                            >
+                                                                                <i className="bi bi-clock-history me-2"></i>
+                                                                                <span>{term}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <p className="empty-recent">Start typing to search restaurants</p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-4">
+                                    <AddressBar />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -87,7 +293,7 @@ function HomeRestaurantView() {
                     min-height: 100vh;
                     background-color: #f8f9fa;
                 }
-                
+
                 .loader-container {
                     display: flex;
                     justify-content: center;
@@ -95,26 +301,219 @@ function HomeRestaurantView() {
                     height: 100vh;
                     background-color: #ffffff;
                 }
-                
+
                 .content-section {
                     background-color: #f8f9fa;
                 }
-                
-                .map-container, 
-                .recent-restaurants-container, 
-                .favorites-container, 
+
+                .map-container,
+                .recent-restaurants-container,
+                .favorites-container,
                 .nearby-restaurants-container {
                     border-radius: 8px;
                     overflow: hidden;
                 }
-                
+
                 .section-header {
                     position: relative;
                 }
-                
+
+                /* Search Styles */
+                .search-container {
+                    position: relative;
+                    width: 100%;
+                    z-index: 1000;
+                }
+
+                .search-input-container {
+                    display: flex;
+                    align-items: center;
+                    background-color: white;
+                    border-radius: 25px;
+                    padding: 0 15px;
+                    height: 50px;
+                    border: 1px solid #e0e0e0;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                }
+
+                .search-icon {
+                    color: #666;
+                    font-size: 18px;
+                    margin-right: 10px;
+                }
+
+                .search-input {
+                    flex: 1;
+                    height: 46px;
+                    border: none;
+                    outline: none;
+                    font-size: 16px;
+                    color: #333;
+                }
+
+                .clear-button {
+                    background: none;
+                    border: none;
+                    color: #666;
+                    cursor: pointer;
+                    padding: 5px;
+                }
+
+                .search-results-container {
+                    position: absolute;
+                    top: 60px;
+                    left: 0;
+                    right: 0;
+                    background-color: white;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                    max-height: 400px;
+                    overflow-y: auto;
+                    z-index: 1000;
+                }
+
+                .search-loading {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                    color: #666;
+                }
+
+                .results-header {
+                    padding: 12px 15px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+
+                .results-count {
+                    color: #666;
+                    font-size: 14px;
+                }
+
+                .result-item {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 15px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                    transition: background-color 0.2s;
+                }
+
+                .result-item:hover {
+                    background-color: #f8f9fa;
+                }
+
+                .result-image {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    margin-right: 15px;
+                    background-color: #f0f0f0;
+                }
+
+                .result-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .no-image {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #999;
+                    font-size: 24px;
+                }
+
+                .result-info {
+                    flex: 1;
+                }
+
+                .result-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 5px;
+                }
+
+                .result-meta {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                }
+
+                .result-distance, .result-rating {
+                    font-size: 13px;
+                    color: #666;
+                }
+
+                .result-arrow {
+                    color: #50703C;
+                    font-size: 18px;
+                }
+
+                .no-results {
+                    padding: 20px;
+                    text-align: center;
+                    color: #666;
+                }
+
+                .view-all-btn {
+                    display: block;
+                    width: 100%;
+                    padding: 12px;
+                    text-align: center;
+                    background-color: #f8f9fa;
+                    border: none;
+                    color: #50703C;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+
+                .view-all-btn:hover {
+                    background-color: #e9ecef;
+                }
+
+                .recent-searches {
+                    padding: 15px;
+                }
+
+                .recent-title {
+                    color: #333;
+                    margin-bottom: 10px;
+                    font-weight: 600;
+                }
+
+                .recent-item {
+                    padding: 10px;
+                    cursor: pointer;
+                    border-radius: 8px;
+                    transition: background-color 0.2s;
+                    color: #555;
+                }
+
+                .recent-item:hover {
+                    background-color: #f0f0f0;
+                }
+
+                .empty-recent {
+                    text-align: center;
+                    color: #999;
+                    padding: 15px 0;
+                }
+
                 @media (max-width: 768px) {
                     .hero-section {
                         min-height: 50vh !important;
+                    }
+
+                    .search-results-container {
+                        max-height: 300px;
                     }
                 }
             `}</style>
