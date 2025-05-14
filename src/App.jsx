@@ -18,6 +18,9 @@ import Checkout from "@src/pages/Checkout.jsx";
 import Account from "@src/pages/Account.jsx";
 import Orders from "@src/pages/Orders.jsx";
 import OrderDetails from "@src/pages/OrderDetails.jsx";
+import About from "@src/pages/About.jsx";
+import Achievements from "@src/pages/Achievements.jsx";
+import Rankings from "@src/pages/Rankings.jsx";
 
 function App() {
     const { resetKey } = useContext(GlobalResetContext);
@@ -38,6 +41,9 @@ function App() {
                         <Route path="/Checkout" element={<Checkout />} />
                         <Route path="/Orders" element={<Orders />} />
                         <Route path="/order/:id" element={<OrderDetails />} />
+                        <Route path="/About" element={<About />} />
+                        <Route path="/Achievements" element={<Achievements />} />
+                        <Route path="/Rankings" element={<Rankings />} />
 
                         <Route path="*" element={<ErrorPage />} />
                     </Routes>
