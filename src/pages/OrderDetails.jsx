@@ -67,7 +67,6 @@ const OrderDetails = () => {
     const [reportComment, setReportComment] = useState('');
     const [uploadProgress, setUploadProgress] = useState(0);
     const [showReportModal, setShowReportModal] = useState(false);
-    const [headerVisible, setHeaderVisible] = useState(false);
 
     const fileInputRef = useRef(null);
 
@@ -94,8 +93,6 @@ const OrderDetails = () => {
             setSelectedBadges([]);
         }
     }, [rating]);
-
-
 
     const handleBadgeToggle = (badgeId) => {
         setSelectedBadges(prevBadges => {
@@ -495,10 +492,6 @@ const OrderDetails = () => {
                 </div>
             </div>
 
-            <div className="floating-back-button" onClick={() => navigate(-1)}>
-                <i className="bi bi-arrow-left"></i>
-            </div>
-
             <div className="container">
                 <div className="order-details-content">
                     <div className="hero-section">
@@ -634,21 +627,20 @@ const OrderDetails = () => {
                 }
 
                 .sticky-header {
-                    position: fixed;
-                    top: -70px;
-                    left: 0;
-                    right: 0;
-                    background-color: white;
-                    z-index: 1000;
-                    padding: 15px 0;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                    transition: top 0.3s;
+                    background-color: #FFFFFF;
+                    padding-bottom: 10px;
+                    border-bottom-left-radius: 20px;
+                    border-bottom-right-radius: 20px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                    position: sticky;
+                    //top: 0;
+                    z-index: 10;
                 }
-                
 
                 .header-content {
                     display: flex;
                     align-items: center;
+                    padding: 16px 20px;
                 }
 
                 .back-button {
@@ -657,6 +649,14 @@ const OrderDetails = () => {
                     font-size: 20px;
                     color: #333;
                     cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40px;
+                    height: 40px;
+                    left: 0;
+                    border-radius: 20px;
+                    transition: background-color 0.2s;
                 }
 
                 .header-title {
@@ -684,24 +684,6 @@ const OrderDetails = () => {
                     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                     cursor: pointer;
                 }
-
-                .floating-back-button {
-                    position: fixed;
-                    top: 20px;
-                    left: 20px;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 20px;
-                    background-color: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-                    cursor: pointer;
-                    z-index: 900;
-                    transition: opacity 0.3s;
-                }
-                
 
                 .order-details-content {
                     padding-top: 20px;
