@@ -164,24 +164,87 @@ const AddressSelection = () => {
 
       if (data.status === "OK" && data.results && data.results.length > 0) {
         const result = data.results[0];
-        const addressComponents = result.address_components || [];
 
-        // Extract each component properly
+        // Process all results to ensure we get the most detailed address information
+        // Sometimes the most detailed info isn't in the first result
+        let streetName = '';
+        let neighborhood = '';
+        let district = '';
+        let province = '';
+        let country = '';
+        let postalCode = '';
+
+        // Search through multiple results to find the best data
+        for (const res of data.results) {
+          const addressComponents = res.address_components || [];
+
+          // Try to get street name first
+          if (!streetName) {
+            streetName = extractAddressComponent(addressComponents, ["route"]);
+          }
+
+          // Try to get neighborhood
+          if (!neighborhood) {
+            neighborhood = extractAddressComponent(addressComponents, ["neighborhood", "sublocality_level_2", "sublocality_level_3"]);
+          }
+
+          // Try to get district
+          if (!district) {
+            district = extractAddressComponent(addressComponents, ["sublocality", "sublocality_level_1", "political", "locality"]);
+          }
+
+          // Try to get province/state
+          if (!province) {
+            province = extractAddressComponent(addressComponents, ["administrative_area_level_1"]);
+          }
+
+          // Try to get country
+          if (!country) {
+            country = extractAddressComponent(addressComponents, ["country"]);
+          }
+
+          // Try to get postal code
+          if (!postalCode) {
+            postalCode = extractAddressComponent(addressComponents, ["postal_code"]);
+          }
+        }
+
+        // If street name is still empty, try to use the street number or premise
+        if (!streetName) {
+          for (const res of data.results) {
+            const addressComponents = res.address_components || [];
+            streetName = extractAddressComponent(addressComponents, ["street_number", "premise", "point_of_interest"]) || "Unnamed Street";
+          }
+        }
+
+        // If neighborhood is empty, use a fallback
+        if (!neighborhood) {
+          neighborhood = district || province || "Unknown area";
+        }
+
+        // If district is empty but we have neighborhood, swap them
+        if (!district && neighborhood) {
+          district = neighborhood;
+          neighborhood = '';
+        }
+
         const formattedAddress = {
           title: "Home",
           longitude: lng,
           latitude: lat,
-          street: extractAddressComponent(addressComponents, ["route"]) || "Unknown street",
-          neighborhood: extractAddressComponent(addressComponents, ["neighborhood", "sublocality_level_2"]) || "Unknown neighborhood",
-          district: extractAddressComponent(addressComponents, ["sublocality", "sublocality_level_1"]) || "Unknown district",
-          province: extractAddressComponent(addressComponents, ["administrative_area_level_1"]) || "Unknown province",
-          country: extractAddressComponent(addressComponents, ["country"]) || "Unknown country",
-          postalCode: extractAddressComponent(addressComponents, ["postal_code"]) || "Unknown postal code",
+          street: streetName || "Unknown street",
+          neighborhood: neighborhood || "Unknown neighborhood",
+          district: district || "Unknown district",
+          province: province || "Unknown province",
+          country: country || "Unknown country",
+          postalCode: postalCode || "Unknown postal code",
           apartmentNo: apartmentNo,
           doorNo: doorNo,
           isPrimary: true,
           formattedAddress: result.formatted_address || ""
         };
+
+        console.log("Address extracted:", formattedAddress);
         setAddressData(formattedAddress);
       } else {
         setAddressData({
