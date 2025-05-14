@@ -42,7 +42,7 @@ const Register = () => {
     if (!email && !phoneNumber) {
       return false;
     }
-    if (!password || password.length < 6) {
+    if (!password || password.length < 8) {
       return false;
     }
     if (!agreedToTerms) {
