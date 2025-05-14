@@ -8,7 +8,7 @@ import appstore from "../images/appstore-btn.svg";
 
 import { Link } from "react-router";
 import  { useState, useEffect } from "react";
-import { Slide,  } from "react-awesome-reveal";
+import { Slide } from "react-awesome-reveal";
 import { MagnifyingGlass } from "react-loader-spinner";
 import { useSelector } from "react-redux";
 import HomeRestaurantView from "./HomeRestaurantView";
