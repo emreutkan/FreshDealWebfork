@@ -88,8 +88,8 @@ const Login = () => {
                         </button>
                         <button
                             type="button"
-                            className={`btn ${loginType === "phone" ? "btn-success" : "btn-outline-secondary"}`}
-                            onClick={() => setLoginType("phone")}
+                            className={`btn ${loginType === "phone_number" ? "btn-success" : "btn-outline-secondary"}`}
+                            onClick={() => setLoginType("phone_number")}
                         >
                           <i className="bi bi-phone me-2"></i>Phone
                         </button>

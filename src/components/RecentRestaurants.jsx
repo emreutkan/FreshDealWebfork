@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getRecentRestaurantsThunk } from "../redux/thunks/restaurantThunks";
 import { isRestaurantOpen } from "../utils/RestaurantFilters.js";
@@ -13,6 +13,10 @@ const RecentRestaurants = () => {
         (state) => state.restaurant
     );
     const sliderRef = useRef(null);
+
+    useEffect(() => {
+        dispatch(getRecentRestaurantsThunk());
+    }, [dispatch]);
 
     const recentRestaurants = restaurantsProximity.filter(restaurant =>
         recentRestaurantIDs.includes(restaurant.id)
@@ -102,17 +106,16 @@ const RecentRestaurants = () => {
 
                             <div style={styles.recentContent}>
                                 <div style={styles.dateBadge}>
-                                    <i className="bi bi-clock me-1"></i>
-                                    <span>Recent</span>
+                                    <i className="bi bi-clock-history me-1"></i>
+                                    <span>Recently Visited</span>
                                 </div>
-                                <h5 style={styles.recentTitle}>{item.restaurantName}</h5>
+                                <h5 style={styles.recentName}>{item.restaurantName}</h5>
+                                {isDisabled && (
+                                    <div style={styles.disabledOverlay}>
+                                        <span style={styles.disabledMessage}>{overlayMessage}</span>
+                                    </div>
+                                )}
                             </div>
-
-                            {isDisabled && (
-                                <div style={styles.disabledOverlay}>
-                                    <span>{overlayMessage}</span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </Link>
@@ -121,121 +124,86 @@ const RecentRestaurants = () => {
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.headerContainer}>
-                <div style={styles.headerLeft}>
-                    <i className="bi bi-clock-history me-2 text-success"></i>
-                    <h4 className="mb-0 fw-bold">Recent Orders</h4>
-                </div>
-                <div style={styles.headerRight}>
-                    <button onClick={debugState} className="btn btn-sm btn-light me-2">
-                        State
-                    </button>
-                    <button onClick={debugRecents} className="btn btn-sm btn-light me-2">
-                        API
-                    </button>
-                    <i className="bi bi-chevron-right text-success fs-5"></i>
-                </div>
+        <div className="recent-restaurants my-4">
+            <div className="d-flex align-items-center justify-content-between mb-3">
+                <h3 className="fw-bold mb-0">Recently Visited</h3>
             </div>
+            <Slider ref={sliderRef} {...settings}>
+                {recentRestaurants.map(restaurant => renderRecentItem(restaurant))}
+            </Slider>
 
-            <div style={styles.sliderContainer}>
-                <Slider ref={sliderRef} {...settings}>
-                    {recentRestaurants.map(restaurant => renderRecentItem(restaurant))}
-                </Slider>
-            </div>
+            <style jsx>{`
+                .recent-restaurants {
+                    margin-bottom: 30px;
+                }
+            `}</style>
         </div>
     );
 };
 
 const styles = {
-    container: {
-        backgroundColor: '#FFFFFF',
-        paddingBottom: '8px',
-        marginBottom: '1rem',
-        borderRadius: '0.25rem',
-        boxShadow: '0 .125rem .25rem rgba(0,0,0,.075)',
-        padding: '1rem'
-    },
-    headerContainer: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem'
-    },
-    headerLeft: {
-        display: 'flex',
-        alignItems: 'center'
-    },
-    headerRight: {
-        display: 'flex',
-        alignItems: 'center'
-    },
-    sliderContainer: {
-        position: 'relative'
-    },
     recentCardContainer: {
-        padding: '0 8px'
+        padding: '0 8px',
+        height: '100%',
     },
     recentCard: {
-        height: '130px',
-        borderRadius: '12px',
+        borderRadius: '16px',
         overflow: 'hidden',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        height: '180px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         position: 'relative',
-        marginBottom: '15px'
     },
     recentImageContainer: {
+        position: 'relative',
+        width: '100%',
         height: '100%',
-        position: 'relative'
     },
     recentImage: {
         width: '100%',
         height: '100%',
-        objectFit: 'cover'
+        objectFit: 'cover',
     },
     recentNoImage: {
+        width: '100%',
         height: '100%',
-        backgroundColor: '#f3f4f6',
         display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
-        alignItems: 'center'
+        backgroundColor: '#f0f0f0',
     },
     gradientOverlay: {
         position: 'absolute',
+        bottom: 0,
         left: 0,
         right: 0,
-        bottom: 0,
-        height: '60%',
-        background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.7))'
+        top: 0,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)',
     },
     recentContent: {
         position: 'absolute',
+        bottom: 0,
         left: 0,
         right: 0,
-        bottom: 0,
-        padding: '8px'
+        padding: '16px',
+    },
+    recentName: {
+        color: 'white',
+        marginBottom: '8px',
+        fontSize: '18px',
+        fontWeight: '600',
+        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
     },
     dateBadge: {
         display: 'inline-flex',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        padding: '2px 6px',
-        borderRadius: '6px',
-        marginBottom: '4px',
-        gap: '4px',
-        color: '#fff',
+        backgroundColor: 'rgba(80, 112, 60, 0.85)',
+        color: 'white',
+        padding: '4px 8px',
+        borderRadius: '12px',
         fontSize: '12px',
-        fontWeight: '600'
-    },
-    recentTitle: {
-        fontSize: '14px',
-        fontWeight: '600',
-        color: '#fff',
-        margin: 0,
-        overflow: 'hidden',
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical'
+        fontWeight: '500',
+        marginBottom: '8px',
     },
     disabledOverlay: {
         position: 'absolute',
@@ -243,14 +211,20 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        color: '#fff',
-        fontSize: '14px',
-        fontWeight: '600'
-    }
+        justifyContent: 'center',
+        borderRadius: '16px',
+    },
+    disabledMessage: {
+        color: 'white',
+        backgroundColor: 'rgba(80, 112, 60, 0.9)',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        fontWeight: '600',
+        textAlign: 'center',
+    },
 };
 
 export default RecentRestaurants;

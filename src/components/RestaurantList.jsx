@@ -116,7 +116,7 @@ function RestaurantList() {
                                                     </span>
                                                 </div>
                                             )}
-                                            {restaurant.minOrderAmount !== undefined && restaurant.delivery && (
+                                            {restaurant.minOrderAmount !== undefined && restaurant.minOrderAmount !== null && restaurant.delivery && (
                                                 <div className="footer-item">
                                                     <span className="footer-label">Min Order:</span>
                                                     <span className="footer-value">${restaurant.minOrderAmount.toFixed(2)}</span>

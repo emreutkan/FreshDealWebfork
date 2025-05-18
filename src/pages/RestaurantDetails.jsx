@@ -1,16 +1,10 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useEffect, useState, useRef, createContext, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { getRestaurantThunk, getListingsThunk, getRestaurantBadgesThunk } from "@src/redux/thunks/restaurantThunks.js";
 import { addItemToCart, fetchCart, removeItemFromCart, updateCartItem } from "@src/redux/thunks/cartThunks.js";
 import { format, addDays } from 'date-fns';
-
-// Create context to share scroll value
-export const ScrollContext = createContext({
-    scrollY: 0
-});
 
 const RestaurantDetails = () => {
     const { id } = useParams();
@@ -19,47 +13,6 @@ const RestaurantDetails = () => {
     const [showInfoModal, setShowInfoModal] = useState(false);
     const [showBadgeModal, setShowBadgeModal] = useState(false);
     const [selectedBadge, setSelectedBadge] = useState(null);
-    const [headerHeight, setHeaderHeight] = useState(0);
-
-    // Create ref for the header to measure its height
-    const headerRef = useRef(null);
-
-    // Create ref to track scroll position
-    const scrollY = useRef(0);
-
-    // Set up scroll event listener
-    useEffect(() => {
-        const handleScroll = () => {
-            scrollY.current = window.scrollY;
-
-            // Apply sticky header logic
-            const header = document.querySelector('.restaurant-header-container');
-            if (header) {
-                if (window.scrollY > headerHeight) {
-                    header.classList.add('sticky-header');
-                } else {
-                    header.classList.remove('sticky-header');
-                }
-            }
-
-            // Apply mini header opacity based on scroll
-            const miniHeader = document.querySelector('.mini-header');
-            if (miniHeader) {
-                const opacity = Math.min(1, (window.scrollY - 50) / 50);
-                miniHeader.style.opacity = opacity;
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [headerHeight]);
-
-    // Measure header height after component mounts
-    useEffect(() => {
-        if (headerRef.current) {
-            setHeaderHeight(headerRef.current.offsetHeight);
-        }
-    }, []);
 
     const restaurant = useSelector((state) => state.restaurant.selectedRestaurant);
     const listings = useSelector((state) => state.restaurant.selectedRestaurantListings);
@@ -239,564 +192,518 @@ const RestaurantDetails = () => {
     );
 
     return (
-        <ScrollContext.Provider value={{ scrollY: scrollY.current }}>
-            <div className="restaurant-detail-container">
-                {/* Mini header - appears when scrolling */}
-                <div className="mini-header">
-                    <div className="container d-flex justify-content-between align-items-center">
-                        <h5 className="mini-title">{restaurant.restaurantName}</h5>
-                        <div className="mini-rating">
-                            <i className="bi bi-star-fill text-warning"></i>
-                            <span className="ms-1">{(restaurant.rating || 0).toFixed(1)}</span>
+        <div className="restaurant-detail-container">
+            {/* Restaurant header */}
+            <div className="restaurant-header-container">
+                <div className="restaurant-image-container">
+                    {restaurant.image_url ? (
+                        <img
+                            src={restaurant.image_url}
+                            alt={restaurant.restaurantName}
+                            className="restaurant-image"
+                        />
+                    ) : (
+                        <div className="no-image-container">
+                            <i className="bi bi-shop fs-1 text-secondary"></i>
+                            <p>No image available</p>
                         </div>
-                    </div>
+                    )}
+                    <div className="image-overlay"></div>
+                    <button onClick={() => navigate(-1)} className="back-button">
+                        <i className="bi bi-arrow-left"></i>
+                    </button>
                 </div>
 
-                {/* Restaurant header */}
-                <div className="restaurant-header-container" ref={headerRef}>
-                    <div className="restaurant-image-container">
-                        {restaurant.image_url ? (
-                            <img
-                                src={restaurant.image_url}
-                                alt={restaurant.restaurantName}
-                                className="restaurant-image"
-                            />
-                        ) : (
-                            <div className="no-image-container">
-                                <i className="bi bi-shop fs-1 text-secondary"></i>
-                                <p>No image available</p>
+                <div className="restaurant-info-section">
+                    <div className="container">
+                        <div className="d-flex justify-content-between align-items-start">
+                            <h1 className="restaurant-name">{restaurant.restaurantName}</h1>
+                            <button className="info-button" onClick={() => setShowInfoModal(true)}>
+                                <i className="bi bi-info-circle"></i>
+                            </button>
+                        </div>
+
+                        <div className="restaurant-meta d-flex flex-wrap align-items-center mb-3">
+                            <div className="rating-box me-2">
+                                <i className="bi bi-star-fill text-warning"></i>
+                                <span className="rating-text ms-1">{(restaurant.rating || 0).toFixed(1)}</span>
+                                <span className="rating-count ms-1">({restaurant.ratingCount || 0}+)</span>
                             </div>
-                        )}
-                        <div className="image-overlay"></div>
-                        <button onClick={() => navigate(-1)} className="back-button">
-                            <i className="bi bi-arrow-left"></i>
-                        </button>
-                    </div>
-
-                    <div className="restaurant-info-section">
-                        <div className="container">
-                            <div className="d-flex justify-content-between align-items-start">
-                                <h1 className="restaurant-name">{restaurant.restaurantName}</h1>
-                                <button className="info-button" onClick={() => setShowInfoModal(true)}>
-                                    <i className="bi bi-info-circle"></i>
-                                </button>
+                            <div className="distance-box">
+                                <span>{(restaurant.distance_km || 0).toFixed(1)} km</span>
                             </div>
+                            <Link to={`/restaurant/${id}/comments`} className="comments-button ms-auto">
+                                <i className="bi bi-chat-dots"></i>
+                                <span className="ms-1">Comments</span>
+                            </Link>
+                        </div>
 
-                            <div className="restaurant-meta d-flex flex-wrap align-items-center mb-3">
-                                <div className="rating-box me-2">
-                                    <i className="bi bi-star-fill text-warning"></i>
-                                    <span className="rating-text ms-1">{(restaurant.rating || 0).toFixed(1)}</span>
-                                    <span className="rating-count ms-1">({restaurant.ratingCount || 0}+)</span>
-                                </div>
-                                <div className="distance-box">
-                                    <span>{(restaurant.distance_km || 0).toFixed(1)} km</span>
-                                </div>
-                                <Link to={`/restaurant/${id}/comments`} className="comments-button ms-auto">
-                                    <i className="bi bi-chat-dots"></i>
-                                    <span className="ms-1">Comments</span>
-                                </Link>
-                            </div>
+                        <div className="row badges-toggle-row">
+                            <div className="col-lg-8 col-md-8 col-12">
+                                {/* Badges */}
+                                <div className="badges-container">
+                                    {badges.length > 0 ? (
+                                        <div className="badges-list d-flex flex-wrap">
+                                            {badges.map((badge, index) => {
+                                                const badgeInfo = BADGE_INFO[badge] || {
+                                                    icon: 'bi-award',
+                                                    name: badge,
+                                                    color: '#666666',
+                                                    positive: true
+                                                };
 
-                            <div className="row badges-toggle-row">
-                                <div className="col-lg-8 col-md-8 col-12">
-                                    {/* Badges */}
-                                    <div className="badges-container">
-                                        {badges.length > 0 ? (
-                                            <div className="badges-list d-flex flex-wrap">
-                                                {badges.map((badge, index) => {
-                                                    const badgeInfo = BADGE_INFO[badge] || {
-                                                        icon: 'bi-award',
-                                                        name: badge,
-                                                        color: '#666666',
-                                                        positive: true
-                                                    };
-
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className="badge-item"
-                                                            onClick={() => {
-                                                                setSelectedBadge(badge);
-                                                                setShowBadgeModal(true);
-                                                            }}
-                                                        >
-                                                            <div
-                                                                className="badge-icon"
-                                                                style={{
-                                                                    backgroundColor: badgeInfo.positive ? '#50703C' : '#D32F2F'
-                                                                }}
-                                                            >
-                                                                <i className={`bi ${badgeInfo.icon} text-white`}></i>
-                                                            </div>
-                                                            <span
-                                                                className="badge-name"
-                                                                style={{
-                                                                    color: badgeInfo.positive ? '#333333' : '#D32F2F'
-                                                                }}
-                                                            >
-                                                                {badgeInfo.name}
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="empty-badges-container d-flex">
-                                                {LOCKED_BADGES.map((badge, index) => (
-                                                    <div key={index} className="badge-item">
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="badge-item"
+                                                        onClick={() => {
+                                                            setSelectedBadge(badge);
+                                                            setShowBadgeModal(true);
+                                                        }}
+                                                    >
                                                         <div
                                                             className="badge-icon"
                                                             style={{
-                                                                backgroundColor: badge.color
+                                                                backgroundColor: badgeInfo.positive ? '#50703C' : '#D32F2F'
                                                             }}
                                                         >
-                                                            <i className={`bi ${badge.icon} text-white`}></i>
+                                                            <i className={`bi ${badgeInfo.icon} text-white`}></i>
                                                         </div>
-                                                        <span className="badge-name text-muted">{badge.name}</span>
+                                                        <span
+                                                            className="badge-name"
+                                                            style={{
+                                                                color: badgeInfo.positive ? '#333333' : '#D32F2F'
+                                                            }}
+                                                        >
+                                                            {badgeInfo.name}
+                                                        </span>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="empty-badges-container d-flex">
+                                            {LOCKED_BADGES.map((badge, index) => (
+                                                <div key={index} className="badge-item">
+                                                    <div
+                                                        className="badge-icon"
+                                                        style={{
+                                                            backgroundColor: badge.color
+                                                        }}
+                                                    >
+                                                        <i className={`bi ${badge.icon} text-white`}></i>
+                                                    </div>
+                                                    <span className="badge-name text-muted">{badge.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="col-lg-4 col-md-4 col-12">
-                                    {/* Pickup/Delivery Toggle */}
-                                    <div className="pickup-delivery-toggle">
-                                        {restaurant.pickup && restaurant.delivery ? (
-                                            <div className="btn-group w-100">
-                                                <button
-                                                    className={`btn ${isPickup ? 'btn-dark' : 'btn-light'}`}
-                                                    onClick={() => handleToggleDeliveryMethod(true)}
-                                                >
-                                                    Pick Up
-                                                </button>
-                                                <button
-                                                    className={`btn ${!isPickup ? 'btn-dark' : 'btn-light'}`}
-                                                    onClick={() => handleToggleDeliveryMethod(false)}
-                                                >
-                                                    Delivery
-                                                </button>
-                                            </div>
-                                        ) : (
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-12">
+                                {/* Pickup/Delivery Toggle */}
+                                <div className="pickup-delivery-toggle">
+                                    {restaurant.pickup && restaurant.delivery ? (
+                                        <div className="btn-group w-100">
                                             <button
-                                                className="btn btn-dark w-100"
-                                                disabled
+                                                className={`btn ${isPickup ? 'btn-dark' : 'btn-light'}`}
+                                                onClick={() => handleToggleDeliveryMethod(true)}
                                             >
-                                                {restaurant.pickup ? 'Pick Up Only' : 'Delivery Only'}
+                                                Pick Up
                                             </button>
-                                        )}
-                                    </div>
+                                            <button
+                                                className={`btn ${!isPickup ? 'btn-dark' : 'btn-light'}`}
+                                                onClick={() => handleToggleDeliveryMethod(false)}
+                                            >
+                                                Delivery
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            className="btn btn-dark w-100"
+                                            disabled
+                                        >
+                                            {restaurant.pickup ? 'Pick Up Only' : 'Delivery Only'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Main content */}
-                <div className="container">
-                    {/* Menu/Listings */}
-                    <div className="menu-section mt-4 pb-5">
-                        <h2 className="section-title">Menu</h2>
+            {/* Main content */}
+            <div className="container">
+                {/* Menu/Listings */}
+                <div className="menu-section mt-4 pb-5">
+                    <h2 className="section-title">Menu</h2>
 
-                        {listings.length > 0 ? (
-                            <div className="row menu-grid">
-                                {listings.map((listing) => {
-                                    const displayPrice = getDisplayPrice(listing);
-                                    const cartItem = cart.cartItems.find(
-                                        (cartItem) => cartItem.listing_id === listing.id
-                                    );
-                                    const countInCart = cartItem ? cartItem.count : 0;
-                                    const discountPercentage = listing.original_price ?
-                                        Math.round(((listing.original_price - displayPrice) / listing.original_price) * 100) : 0;
+                    {listings.length > 0 ? (
+                        <div className="row menu-grid">
+                            {listings.map((listing) => {
+                                const displayPrice = getDisplayPrice(listing);
+                                const cartItem = cart.cartItems.find(
+                                    (cartItem) => cartItem.listing_id === listing.id
+                                );
+                                const countInCart = cartItem ? cartItem.count : 0;
+                                const discountPercentage = listing.original_price ?
+                                    Math.round(((listing.original_price - displayPrice) / listing.original_price) * 100) : 0;
 
-                                    return (
-                                        <div className="col-lg-6 col-md-6 col-12 mb-4" key={listing.id}>
-                                            <div className="menu-item" onClick={() => handleListingDetailsClick(listing)}>
-                                                <div className="menu-item-image-container">
-                                                    <img
-                                                        src={listing.image_url}
-                                                        alt={listing.title}
-                                                        className="menu-item-image"
-                                                    />
-                                                    <div
-                                                        className="fresh-score-badge"
-                                                        style={{
-                                                            backgroundColor: getFreshScoreColor(listing.fresh_score) === '#059669' ?
-                                                                '#ECFDF5' : getFreshScoreColor(listing.fresh_score) === '#F59E0B' ?
-                                                                    '#FEF3C7' : '#FEE2E2',
-                                                            borderColor: getFreshScoreColor(listing.fresh_score)
-                                                        }}
+                                return (
+                                    <div className="col-lg-6 col-md-6 col-12 mb-4" key={listing.id}>
+                                        <div className="menu-item" onClick={() => handleListingDetailsClick(listing)}>
+                                            <div className="menu-item-image-container">
+                                                <img
+                                                    src={listing.image_url}
+                                                    alt={listing.title}
+                                                    className="menu-item-image"
+                                                />
+                                                <div
+                                                    className="fresh-score-badge"
+                                                    style={{
+                                                        backgroundColor: getFreshScoreColor(listing.fresh_score) === '#059669' ?
+                                                            '#ECFDF5' : getFreshScoreColor(listing.fresh_score) === '#F59E0B' ?
+                                                                '#FEF3C7' : '#FEE2E2',
+                                                        borderColor: getFreshScoreColor(listing.fresh_score)
+                                                    }}
+                                                >
+                                                    <i
+                                                        className="bi bi-leaf"
+                                                        style={{color: getFreshScoreColor(listing.fresh_score)}}
+                                                    ></i>
+                                                    <span
+                                                        style={{color: getFreshScoreColor(listing.fresh_score)}}
                                                     >
-                                                        <i
-                                                            className="bi bi-leaf"
-                                                            style={{color: getFreshScoreColor(listing.fresh_score)}}
-                                                        ></i>
-                                                        <span
-                                                            style={{color: getFreshScoreColor(listing.fresh_score)}}
-                                                        >
-                                                            {Math.round(listing.fresh_score)}% Fresh
-                                                        </span>
-                                                    </div>
+                                                        {Math.round(listing.fresh_score)}% Fresh
+                                                    </span>
                                                 </div>
-                                                <div className="menu-item-content">
-                                                    <h3 className="menu-item-title">{listing.title}</h3>
-                                                    <div className="menu-item-price-cart">
-                                                        <div className="menu-item-pricing">
-                                                            {listing.original_price > displayPrice && (
-                                                                <span className="original-price">
-                                                                    {listing.original_price} TL
-                                                                </span>
-                                                            )}
-                                                            <span className="current-price">
-                                                                {displayPrice} TL
+                                            </div>
+                                            <div className="menu-item-content">
+                                                <h3 className="menu-item-title">{listing.title}</h3>
+                                                <div className="menu-item-price-cart">
+                                                    <div className="menu-item-pricing">
+                                                        {listing.original_price > displayPrice && (
+                                                            <span className="original-price">
+                                                                {listing.original_price} TL
                                                             </span>
-                                                            {listing.original_price > displayPrice && (
-                                                                <span className="discount-badge">
-                                                                    Save {discountPercentage}%
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        )}
+                                                        <span className="current-price">
+                                                            {displayPrice} TL
+                                                        </span>
+                                                        {listing.original_price > displayPrice && (
+                                                            <span className="discount-badge">
+                                                                Save {discountPercentage}%
+                                                            </span>
+                                                        )}
+                                                    </div>
 
-                                                        <div className="menu-item-cart" onClick={(e) => e.stopPropagation()}>
-                                                            {countInCart > 0 ? (
-                                                                <div className="cart-controls">
-                                                                    <button
-                                                                        className="cart-btn minus-btn"
-                                                                        onClick={() => handleRemoveFromCart(listing)}
-                                                                    >
-                                                                        <i className="bi bi-dash"></i>
-                                                                    </button>
-                                                                    <span className="cart-count">{countInCart}</span>
-                                                                    <button
-                                                                        className="cart-btn plus-btn"
-                                                                        onClick={() => handleAddToCart(listing)}
-                                                                    >
-                                                                        <i className="bi bi-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            ) : (
+                                                    <div className="menu-item-cart" onClick={(e) => e.stopPropagation()}>
+                                                        {countInCart > 0 ? (
+                                                            <div className="cart-controls">
                                                                 <button
-                                                                    className="add-to-cart-btn"
+                                                                    className="cart-btn minus-btn"
+                                                                    onClick={() => handleRemoveFromCart(listing)}
+                                                                >
+                                                                    <i className="bi bi-dash"></i>
+                                                                </button>
+                                                                <span className="cart-count">{countInCart}</span>
+                                                                <button
+                                                                    className="cart-btn plus-btn"
                                                                     onClick={() => handleAddToCart(listing)}
                                                                 >
                                                                     <i className="bi bi-plus"></i>
                                                                 </button>
-                                                            )}
-                                                        </div>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                className="add-to-cart-btn"
+                                                                onClick={() => handleAddToCart(listing)}
+                                                            >
+                                                                <i className="bi bi-plus"></i>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="empty-menu-message">
+                            <p>No menu items available at the moment. Please check back later.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Cart bar at bottom of screen */}
+            {cart.cartItems.length > 0 && (
+                <div className="cart-bar">
+                    <div className="container">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div className="cart-info">
+                                <span className="cart-count-badge">
+                                    {cart.cartItems.reduce((total, item) => total + item.count, 0)} items
+                                </span>
+                                <span className="cart-total">
+                                    {cart.cartItems.reduce((total, item) => {
+                                        const listing = listings.find(l => l.id === item.listing_id);
+                                        if (!listing) return total;
+                                        return total + (getDisplayPrice(listing) * item.count);
+                                    }, 0).toFixed(2)} TL
+                                </span>
                             </div>
-                        ) : (
-                            <div className="empty-menu-message">
-                                <p>No menu items available at the moment. Please check back later.</p>
-                            </div>
-                        )}
+                            <Link to="/cart" className="view-cart-btn">
+                                View Cart <i className="bi bi-arrow-right ms-2"></i>
+                            </Link>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                {/* Cart bar at bottom of screen */}
-                {cart.cartItems.length > 0 && (
-                    <div className="cart-bar">
-                        <div className="container">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div className="cart-info">
-                                    <span className="cart-count-badge">
-                                        {cart.cartItems.reduce((total, item) => total + item.count, 0)} items
-                                    </span>
-                                    <span className="cart-total">
-                                        {cart.cartItems.reduce((total, item) => {
-                                            const listing = listings.find(l => l.id === item.listing_id);
-                                            if (!listing) return total;
-                                            return total + (getDisplayPrice(listing) * item.count);
-                                        }, 0).toFixed(2)} TL
-                                    </span>
-                                </div>
-                                <Link to="/cart" className="view-cart-btn">
-                                    View Cart <i className="bi bi-arrow-right ms-2"></i>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Restaurant Info Modal */}
-                {showInfoModal && (
-                    <div className="modal-overlay" onClick={() => setShowInfoModal(false)}>
-                        <div className="info-modal" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h4>Restaurant Info</h4>
-                                <button className="close-btn" onClick={() => setShowInfoModal(false)}>
-                                    <i className="bi bi-x-lg"></i>
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <p className="restaurant-description">
-                                    {restaurant.restaurantDescription || "No description available."}
-                                </p>
-                                <div className="info-grid">
-                                    <div className="info-item">
-                                        <span className="info-label">Category:</span>
-                                        <span className="info-value">{restaurant.category || "N/A"}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Working Hours:</span>
-                                        <span className="info-value">
-                                            {formatWorkingHours(
-                                                restaurant.workingHoursStart || "",
-                                                restaurant.workingHoursEnd || ""
-                                            )}
-                                        </span>
-                                    </div>
-                                    {restaurant.delivery && (
-                                        <div className="info-item">
-                                            <span className="info-label">Delivery Fee:</span>
-                                            <span className="info-value">{`${restaurant.deliveryFee || 0} TL`}</span>
-                                        </div>
-                                    )}
-                                    <div className="info-item">
-                                        <span className="info-label">Delivery:</span>
-                                        <span className="info-value">{restaurant.delivery ? "Available" : "Not available"}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Pickup:</span>
-                                        <span className="info-value">{restaurant.pickup ? "Available" : "Not available"}</span>
-                                    </div>
-                                </div>
-
-                                <div className="map-section mt-4">
-                                    <h5>Location</h5>
-                                    <div className="map-placeholder">
-                                        <iframe
-                                            src={`https://maps.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}&z=15&output=embed`}
-                                            width="100%"
-                                            height="300"
-                                            frameBorder="0"
-                                            style={{border:0}}
-                                            allowFullScreen=""
-                                            aria-hidden="false"
-                                            tabIndex="0"
-                                        ></iframe>
-                                    </div>
-                                    <a
-                                        href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="directions-btn mt-3"
-                                    >
-                                        <i className="bi bi-map me-2"></i>
-                                        Get Directions
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Badge Modal */}
-                {showBadgeModal && selectedBadge && (
-                    <div className="modal-overlay" onClick={() => setShowBadgeModal(false)}>
-                        <div className="badge-modal" onClick={(e) => e.stopPropagation()}>
-                            {(() => {
-                                const badgeInfo = BADGE_INFO[selectedBadge] || {
-                                    icon: 'bi-award',
-                                    name: selectedBadge,
-                                    color: '#666666',
-                                    description: 'No description available',
-                                    positive: true
-                                };
-
-                                return (
-                                    <>
-                                        <div
-                                            className="badge-icon-large"
-                                            style={{
-                                                backgroundColor: badgeInfo.color + '20'
-                                            }}
-                                        >
-                                            <i
-                                                className={`bi ${badgeInfo.icon}`}
-                                                style={{color: badgeInfo.color, fontSize: '2rem'}}
-                                            ></i>
-                                        </div>
-                                        <h3 className="badge-modal-title">{badgeInfo.name}</h3>
-                                        <p className="badge-modal-description">{badgeInfo.description}</p>
-                                        <button
-                                            className="close-badge-btn"
-                                            style={{backgroundColor: badgeInfo.color}}
-                                            onClick={() => setShowBadgeModal(false)}
-                                        >
-                                            Close
-                                        </button>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                    </div>
-                )}
-
-                {/* Listing Detail Modal */}
-                {selectedListing && (
-                    <div className="modal-overlay" onClick={handleCloseModal}>
-                        <div className="listing-detail-modal" onClick={(e) => e.stopPropagation()}>
-                            <button className="close-modal-btn" onClick={handleCloseModal}>
+            {/* Restaurant Info Modal */}
+            {showInfoModal && (
+                <div className="modal-overlay" onClick={() => setShowInfoModal(false)}>
+                    <div className="info-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h4>Restaurant Info</h4>
+                            <button className="close-btn" onClick={() => setShowInfoModal(false)}>
                                 <i className="bi bi-x-lg"></i>
                             </button>
-
-                            <div className="listing-modal-image">
-                                <img
-                                    src={selectedListing.image_url}
-                                    alt={selectedListing.title}
-                                />
-                            </div>
-
-                            <div className="listing-modal-content">
-                                <h2 className="listing-modal-title">{selectedListing.title}</h2>
-
-                                <div
-                                    className="fresh-score-badge-large"
-                                    style={{
-                                        backgroundColor: getFreshScoreColor(selectedListing.fresh_score) === '#059669' ?
-                                            '#ECFDF5' : getFreshScoreColor(selectedListing.fresh_score) === '#F59E0B' ?
-                                                '#FEF3C7' : '#FEE2E2',
-                                        borderColor: getFreshScoreColor(selectedListing.fresh_score)
-                                    }}
-                                >
-                                    <i
-                                        className="bi bi-leaf"
-                                        style={{color: getFreshScoreColor(selectedListing.fresh_score)}}
-                                    ></i>
-                                    <span style={{color: getFreshScoreColor(selectedListing.fresh_score)}}>
-                                        {Math.round(selectedListing.fresh_score)}% Fresh
+                        </div>
+                        <div className="modal-body">
+                            <p className="restaurant-description">
+                                {restaurant.restaurantDescription || "No description available."}
+                            </p>
+                            <div className="info-grid">
+                                <div className="info-item">
+                                    <span className="info-label">Category:</span>
+                                    <span className="info-value">{restaurant.category || "N/A"}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">Working Hours:</span>
+                                    <span className="info-value">
+                                        {formatWorkingHours(
+                                            restaurant.workingHoursStart || "",
+                                            restaurant.workingHoursEnd || ""
+                                        )}
                                     </span>
                                 </div>
-
-                                <div className="consume-within-box">
-                                    <i className="bi bi-clock text-danger"></i>
-                                    <div className="consume-info">
-                                        <span className="consume-text">
-                                            Consume within {selectedListing.consume_within} days
-                                        </span>
-                                        <span className="expiry-date">
-                                            Before {format(addDays(new Date(), selectedListing.consume_within || 1), 'MMM dd, yyyy')}
-                                        </span>
+                                {restaurant.delivery && (
+                                    <div className="info-item">
+                                        <span className="info-label">Delivery Fee:</span>
+                                        <span className="info-value">{`${restaurant.deliveryFee || 0} TL`}</span>
                                     </div>
+                                )}
+                                <div className="info-item">
+                                    <span className="info-label">Delivery:</span>
+                                    <span className="info-value">{restaurant.delivery ? "Available" : "Not available"}</span>
                                 </div>
-
-                                <div className="listing-price-section">
-                                    {(() => {
-                                        const displayPrice = getDisplayPrice(selectedListing);
-                                        const discountPercentage = selectedListing.original_price ?
-                                            Math.round(((selectedListing.original_price - displayPrice) / selectedListing.original_price) * 100) : 0;
-
-                                        return (
-                                            <>
-                                                {selectedListing.original_price && displayPrice && discountPercentage > 0 && (
-                                                    <div className="savings-badge">
-                                                        Save {discountPercentage}%
-                                                    </div>
-                                                )}
-                                                {selectedListing.original_price && (
-                                                    <span className="original-price-large">
-                                                        {selectedListing.original_price} TL
-                                                    </span>
-                                                )}
-                                                <span className="current-price-large">
-                                                    {displayPrice} TL
-                                                </span>
-                                            </>
-                                        );
-                                    })()}
+                                <div className="info-item">
+                                    <span className="info-label">Pickup:</span>
+                                    <span className="info-value">{restaurant.pickup ? "Available" : "Not available"}</span>
                                 </div>
+                            </div>
 
-                                <p className="listing-description">
-                                    {selectedListing.description}
-                                </p>
-
-                                <div className="modal-cart-section">
-                                    {(() => {
-                                        const cartItem = cart.cartItems.find(
-                                            (item) => item.listing_id === selectedListing.id
-                                        );
-                                        const countInCart = cartItem ? cartItem.count : 0;
-
-                                        return (
-                                            <>
-                                                {countInCart > 0 ? (
-                                                    <div className="cart-controls-large">
-                                                        <button
-                                                            className="cart-btn-large"
-                                                            onClick={() => handleRemoveFromCart(selectedListing)}
-                                                        >
-                                                            <i className="bi bi-dash"></i>
-                                                        </button>
-                                                        <span className="cart-count-large">{countInCart}</span>
-                                                        <button
-                                                            className="cart-btn-large"
-                                                            onClick={() => handleAddToCart(selectedListing)}
-                                                        >
-                                                            <i className="bi bi-plus"></i>
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        className="add-to-cart-btn-large"
-                                                        onClick={() => handleAddToCart(selectedListing)}
-                                                    >
-                                                        Add to Cart
-                                                        <span className="ms-2">{getDisplayPrice(selectedListing)} TL</span>
-                                                    </button>
-                                                )}
-                                            </>
-                                        );
-                                    })()}
+                            <div className="map-section mt-4">
+                                <h5>Location</h5>
+                                <div className="map-placeholder">
+                                    <iframe
+                                        src={`https://maps.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}&z=15&output=embed`}
+                                        width="100%"
+                                        height="300"
+                                        frameBorder="0"
+                                        style={{border:0}}
+                                        allowFullScreen=""
+                                        aria-hidden="false"
+                                        tabIndex="0"
+                                    ></iframe>
                                 </div>
+                                <a
+                                    href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="directions-btn mt-3"
+                                >
+                                    <i className="bi bi-map me-2"></i>
+                                    Get Directions
+                                </a>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
+
+            {/* Badge Modal */}
+            {showBadgeModal && selectedBadge && (
+                <div className="modal-overlay" onClick={() => setShowBadgeModal(false)}>
+                    <div className="badge-modal" onClick={(e) => e.stopPropagation()}>
+                        {(() => {
+                            const badgeInfo = BADGE_INFO[selectedBadge] || {
+                                icon: 'bi-award',
+                                name: selectedBadge,
+                                color: '#666666',
+                                description: 'No description available',
+                                positive: true
+                            };
+
+                            return (
+                                <>
+                                    <div
+                                        className="badge-icon-large"
+                                        style={{
+                                            backgroundColor: badgeInfo.color + '20'
+                                        }}
+                                    >
+                                        <i
+                                            className={`bi ${badgeInfo.icon}`}
+                                            style={{color: badgeInfo.color, fontSize: '2rem'}}
+                                        ></i>
+                                    </div>
+                                    <h3 className="badge-modal-title">{badgeInfo.name}</h3>
+                                    <p className="badge-modal-description">{badgeInfo.description}</p>
+                                    <button
+                                        className="close-badge-btn"
+                                        style={{backgroundColor: badgeInfo.color}}
+                                        onClick={() => setShowBadgeModal(false)}
+                                    >
+                                        Close
+                                    </button>
+                                </>
+                            );
+                        })()}
+                    </div>
+                </div>
+            )}
+
+            {/* Listing Detail Modal */}
+            {selectedListing && (
+                <div className="modal-overlay" onClick={handleCloseModal}>
+                    <div className="listing-detail-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-modal-btn" onClick={handleCloseModal}>
+                            <i className="bi bi-x-lg"></i>
+                        </button>
+
+                        <div className="listing-modal-image">
+                            <img
+                                src={selectedListing.image_url}
+                                alt={selectedListing.title}
+                            />
+                        </div>
+
+                        <div className="listing-modal-content">
+                            <h2 className="listing-modal-title">{selectedListing.title}</h2>
+
+                            <div
+                                className="fresh-score-badge-large"
+                                style={{
+                                    backgroundColor: getFreshScoreColor(selectedListing.fresh_score) === '#059669' ?
+                                        '#ECFDF5' : getFreshScoreColor(selectedListing.fresh_score) === '#F59E0B' ?
+                                            '#FEF3C7' : '#FEE2E2',
+                                    borderColor: getFreshScoreColor(selectedListing.fresh_score)
+                                }}
+                            >
+                                <i
+                                    className="bi bi-leaf"
+                                    style={{color: getFreshScoreColor(selectedListing.fresh_score)}}
+                                ></i>
+                                <span style={{color: getFreshScoreColor(selectedListing.fresh_score)}}>
+                                    {Math.round(selectedListing.fresh_score)}% Fresh
+                                </span>
+                            </div>
+
+                            <div className="consume-within-box">
+                                <i className="bi bi-clock text-danger"></i>
+                                <div className="consume-info">
+                                    <span className="consume-text">
+                                        Consume within {selectedListing.consume_within} days
+                                    </span>
+                                    <span className="expiry-date">
+                                        Before {format(addDays(new Date(), selectedListing.consume_within || 1), 'MMM dd, yyyy')}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="listing-price-section">
+                                {(() => {
+                                    const displayPrice = getDisplayPrice(selectedListing);
+                                    const discountPercentage = selectedListing.original_price ?
+                                        Math.round(((selectedListing.original_price - displayPrice) / selectedListing.original_price) * 100) : 0;
+
+                                    return (
+                                        <>
+                                            {selectedListing.original_price && displayPrice && discountPercentage > 0 && (
+                                                <div className="savings-badge">
+                                                    Save {discountPercentage}%
+                                                </div>
+                                            )}
+                                            {selectedListing.original_price && (
+                                                <span className="original-price-large">
+                                                    {selectedListing.original_price} TL
+                                                </span>
+                                            )}
+                                            <span className="current-price-large">
+                                                {displayPrice} TL
+                                            </span>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+
+                            <p className="listing-description">
+                                {selectedListing.description}
+                            </p>
+
+                            <div className="modal-cart-section">
+                                {(() => {
+                                    const cartItem = cart.cartItems.find(
+                                        (item) => item.listing_id === selectedListing.id
+                                    );
+                                    const countInCart = cartItem ? cartItem.count : 0;
+
+                                    return (
+                                        <>
+                                            {countInCart > 0 ? (
+                                                <div className="cart-controls-large">
+                                                    <button
+                                                        className="cart-btn-large"
+                                                        onClick={() => handleRemoveFromCart(selectedListing)}
+                                                    >
+                                                        <i className="bi bi-dash"></i>
+                                                    </button>
+                                                    <span className="cart-count-large">{countInCart}</span>
+                                                    <button
+                                                        className="cart-btn-large"
+                                                        onClick={() => handleAddToCart(selectedListing)}
+                                                    >
+                                                        <i className="bi bi-plus"></i>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    className="add-to-cart-btn-large"
+                                                    onClick={() => handleAddToCart(selectedListing)}
+                                                >
+                                                    Add to Cart
+                                                    <span className="ms-2">{getDisplayPrice(selectedListing)} TL</span>
+                                                </button>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style jsx>{`
                 /* Restaurant Details Styles */
                 .restaurant-detail-container {
                     padding-bottom: 70px;
-                }
-                
-                /* Mini Header */
-                .mini-header {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    background-color: white;
-                    height: 60px;
-                    z-index: 1000;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                    opacity: 0;
-                    transition: opacity 0.3s;
-                    display: flex;
-                    align-items: center;
-                }
-                
-                .mini-title {
-                    margin: 0;
-                    font-weight: 600;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    max-width: 70%;
-                }
-                
-                .mini-rating {
-                    background-color: #f8f8f8;
-                    padding: 4px 12px;
-                    border-radius: 16px;
-                    display: flex;
-                    align-items: center;
                 }
                 
                 /* Restaurant Header */
@@ -1506,16 +1413,6 @@ const RestaurantDetails = () => {
                     cursor: pointer;
                 }
                 
-                /* Sticky header */
-                .sticky-header {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                    z-index: 100;
-                }
-                
                 @media (max-width: 768px) {
                     .restaurant-name {
                         font-size: 24px;
@@ -1540,7 +1437,7 @@ const RestaurantDetails = () => {
                     }
                 }
             `}</style>
-        </ScrollContext.Provider>
+        </div>
     );
 };
 
