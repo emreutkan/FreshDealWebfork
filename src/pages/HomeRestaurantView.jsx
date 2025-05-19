@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AddressBar from "../components/AddressBar";
@@ -10,21 +10,54 @@ import RestaurantMap from "../components/RestaurantMap";
 import { getRestaurantsByProximity } from "../redux/thunks/restaurantThunks";
 import { SearchforRestaurantsThunk } from "../redux/thunks/searchThunks";
 import debounce from 'lodash/debounce';
+import CategoryFilter from "@src/components/CategoryFilter.jsx";
+import Recommendations from "@src/components/Recommendations.jsx";
+import FlashDealsModal from "@src/components/FlashDealsModal.jsx";
+import FlashDealsFloatingBadge from "@src/components/FlashDealsFloatingBadge.jsx";
+// Import the new components
+
+
+// List of available categories - can be moved to CategoryFilter component if needed
+const CATEGORIES = [
+    "All Categories",
+    "Baked Goods",
+    "Fruits & Vegetables",
+    "Meat & Seafood",
+    "Dairy Products",
+    "Ready Meals",
+    "Snacks",
+    "Beverages",
+    "Pantry Items",
+    "Frozen Foods",
+    "Organic Products"
+];
 
 function HomeRestaurantView() {
-    // States for component
+    // Existing states for component
     const [loaderStatus, setLoaderStatus] = useState(true);
     const [searchText, setSearchText] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [recentSearches, setRecentSearches] = useState([]);
-    const [refreshing, setRefreshing] = useState(false);
+    const [, setRefreshing] = useState(false);
+    // New states for new features
+    const [showFlashDeals, setShowFlashDeals] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
     const searchInputRef = useRef(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Selectors
+    // Show Flash Deals modal automatically when component mounts
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowFlashDeals(true);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Existing selectors
     const searchResults = useSelector((state) =>
         state.search.searchResults?.results ?? []
     );
@@ -32,16 +65,20 @@ function HomeRestaurantView() {
         state.restaurant.restaurantsProximity ?? []
     );
 
-    // Filtered restaurants logic
+    // Updated filtered restaurants logic to include category filtering
     const filteredRestaurants = searchText === ""
-        ? restaurants
-        : restaurants.filter((restaurant) =>
-            searchResults
-                .map(result => result.id)
-                .includes(Number(restaurant?.id))
+        ? (selectedCategory === "All Categories"
+            ? restaurants
+            : restaurants.filter(restaurant => restaurant.category === selectedCategory))
+        : (selectedCategory === "All Categories"
+                ? restaurants.filter((restaurant) => searchResults.map(result => result.id).includes(Number(restaurant?.id)))
+                : restaurants.filter((restaurant) =>
+                    searchResults.map(result => result.id).includes(Number(restaurant?.id)) &&
+                    restaurant.category === selectedCategory
+                )
         );
 
-    // Debounced search function
+    // Existing debounced search function
     const debouncedSearch = useCallback(
         debounce((text) => {
             if (text) {
@@ -55,32 +92,28 @@ function HomeRestaurantView() {
         []
     );
 
+    // Existing handlers
     const handleSearch = (e) => {
         const text = e.target.value;
         setSearchText(text);
         debouncedSearch(text);
 
-        // Save to recent searches when user submits
         if (text && !recentSearches.includes(text)) {
-            setRecentSearches(prev => [text, ...prev].slice(0, 5)); // Keep last 5 searches
+            setRecentSearches(prev => [text, ...prev].slice(0, 5));
         }
     };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (searchText && filteredRestaurants.length > 0) {
-            // Navigate to the first restaurant result
             navigate(`/restaurant/${filteredRestaurants[0].id}`);
         }
     };
-
-    const onRefresh = useCallback(() => {
+    useCallback(() => {
         setRefreshing(true);
         dispatch(getRestaurantsByProximity())
             .finally(() => setRefreshing(false));
     }, []);
-
-    // Clear search
     const handleClearSearch = () => {
         setSearchText("");
         searchInputRef.current?.focus();
@@ -91,11 +124,11 @@ function HomeRestaurantView() {
         debouncedSearch(term);
     };
 
+    // Existing useEffect hooks
     useEffect(() => {
         dispatch(getRestaurantsByProximity());
     }, []);
 
-    // Loading effect
     useEffect(() => {
         setTimeout(() => {
             setLoaderStatus(false);
@@ -212,7 +245,7 @@ function HomeRestaurantView() {
                                                                     ))
                                                                 ) : (
                                                                     <div className="no-results">
-                                                                        <p>No restaurants found matching "{searchText}"</p>
+                                                                        <p>No restaurants found matching </p>
                                                                     </div>
                                                                 )}
 
@@ -266,6 +299,16 @@ function HomeRestaurantView() {
 
             <section className="content-section py-4">
                 <div className="container">
+                    {/* New Category Filter Component */}
+                    <CategoryFilter
+                        selectedCategory={selectedCategory}
+                        onSelectCategory={setSelectedCategory}
+                        categories={CATEGORIES}
+                    />
+
+                    {/* New Recommendations Component */}
+                    <Recommendations />
+
                     <div className="map-container mb-4">
                         <RestaurantMap />
                     </div>
@@ -283,10 +326,22 @@ function HomeRestaurantView() {
                             <h2 className="text-dark fw-bold mb-2">Nearby Restaurants</h2>
                             <p className="lead mb-4">Find restaurants with surplus food near you</p>
                         </div>
-                        <RestaurantList />
+                        {/* Pass the filtered restaurants to the RestaurantList component */}
+                        <RestaurantList filteredRestaurants={filteredRestaurants} />
                     </div>
                 </div>
             </section>
+
+            {/* Add Flash Deals Modal */}
+            <FlashDealsModal
+                show={showFlashDeals}
+                onHide={() => setShowFlashDeals(false)}
+            />
+
+            {/* Add Floating Badge to reopen Flash Deals */}
+            {!showFlashDeals && (
+                <FlashDealsFloatingBadge onClick={() => setShowFlashDeals(true)} />
+            )}
 
             <style jsx>{`
                 .home-view {

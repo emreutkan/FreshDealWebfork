@@ -6,6 +6,7 @@ import restaurantReducer from '@src/redux/slices/restaurantSlice';
 import searchReducer from '@src/redux/slices/searchSlice';
 import purchaseReducer from '@src/redux/slices/purchaseSlice';
 import reportReducer from '@src/redux/slices/reportSlice';
+import recommendationReducer from '@src/redux/slices/recommendationSlice';
 
 const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
         search: searchReducer,
         purchase: purchaseReducer,
         report: reportReducer,
+        recommendation: recommendationReducer,
 
     },
     middleware: (getDefaultMiddleware) =>
