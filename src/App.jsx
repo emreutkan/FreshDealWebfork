@@ -22,6 +22,7 @@ import About from "@src/pages/About.jsx";
 import Achievements from "@src/pages/Achievements.jsx";
 import Rankings from "@src/pages/Rankings.jsx";
 import Favorites from "@src/pages/Favorites.jsx";
+import RestaurantComments from "@src/pages/RestaurantComments.jsx";
 
 function App() {
     const { resetKey } = useContext(GlobalResetContext);
@@ -34,6 +35,8 @@ function App() {
                     <Routes key={resetKey}>
                         <Route path="/" element={<Home />} />
                         <Route path="/Restaurant/:id" element={<RestaurantDetails />} />
+                        <Route path="/Restaurant/:id/comments" element={<RestaurantComments />} />
+
                         <Route path="/Address" element={<><AddressSelection /></>} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/Register" element={<Register />} />
