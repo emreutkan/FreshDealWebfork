@@ -22,22 +22,6 @@ const RecentRestaurants = () => {
         recentRestaurantIDs.includes(restaurant.id)
     );
 
-    const debugRecents = async () => {
-        try {
-            const response = await dispatch(getRecentRestaurantsThunk()).unwrap();
-            alert(`Recent Restaurants Response:\n${JSON.stringify(response, null, 2)}`);
-        } catch (error) {
-            alert(`Debug Error:\n${JSON.stringify(error, null, 2)}`);
-        }
-    };
-
-    const debugState = () => {
-        alert(`Current State:\nLoading: ${recentRestaurantsLoading}\nRecents: ${JSON.stringify(recentRestaurantIDs)}\nFiltered Restaurants: ${JSON.stringify(recentRestaurants.map(r => ({
-            name: r.restaurantName,
-            id: r.id
-        })), null, 2)}`);
-    };
-
     if (recentRestaurantsLoading || !recentRestaurants || recentRestaurants.length === 0) {
         return null;
     }
@@ -48,6 +32,7 @@ const RecentRestaurants = () => {
         speed: 500,
         slidesToShow: 4,
         slidesToScroll: 1,
+        arrows: false,
         responsive: [
             {
                 breakpoint: 1200,
@@ -87,7 +72,7 @@ const RecentRestaurants = () => {
                     className="text-decoration-none"
                     style={isDisabled ? {pointerEvents: 'none'} : {}}
                 >
-                    <div style={styles.recentCard}>
+                    <div style={styles.recentCard} className="recent-card">
                         <div style={styles.recentImageContainer}>
                             {item.image_url ? (
                                 <div style={{position: 'relative', height: '100%'}}>
@@ -110,6 +95,16 @@ const RecentRestaurants = () => {
                                     <span>Recently Visited</span>
                                 </div>
                                 <h5 style={styles.recentName}>{item.restaurantName}</h5>
+                                <div style={styles.recentDetails}>
+                                    <span className="rating">
+                                        <i className="bi bi-star-fill text-warning me-1"></i>
+                                        {item.rating || "New"}
+                                    </span>
+                                    <span className="divider">•</span>
+                                    <span className="restaurant-type">
+                                        {item.categoryName || "Restaurant"}
+                                    </span>
+                                </div>
                                 {isDisabled && (
                                     <div style={styles.disabledOverlay}>
                                         <span style={styles.disabledMessage}>{overlayMessage}</span>
@@ -126,15 +121,48 @@ const RecentRestaurants = () => {
     return (
         <div className="recent-restaurants my-4">
             <div className="d-flex align-items-center justify-content-between mb-3">
-                <h3 className="fw-bold mb-0">Recently Visited</h3>
+                <h3 className="section-title">
+                    <i className="bi bi-clock-history me-2 text-primary"></i>
+                    Recently Visited
+                </h3>
             </div>
-            <Slider ref={sliderRef} {...settings}>
-                {recentRestaurants.map(restaurant => renderRecentItem(restaurant))}
-            </Slider>
+            <div className="slider-container">
+                <Slider ref={sliderRef} {...settings}>
+                    {recentRestaurants.map(restaurant => renderRecentItem(restaurant))}
+                </Slider>
+            </div>
 
             <style jsx>{`
                 .recent-restaurants {
-                    margin-bottom: 30px;
+                    margin-bottom: 40px;
+                    padding: 15px;
+                    background-color: #f8f9fa;
+                    border-radius: 12px;
+                }
+                .section-title {
+                    font-weight: 700;
+                    font-size: 24px;
+                    margin-bottom: 0;
+                    display: flex;
+                    align-items: center;
+                }
+                .slider-container {
+                    padding: 10px 0;
+                }
+                .recent-card {
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    margin: 0 15px;
+                }
+                .recent-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+                }
+                /* Override slick slider default styles */
+                .slick-slide {
+                    padding: 0 10px;
+                }
+                .slick-list {
+                    margin: 0 -10px;
                 }
             `}</style>
         </div>
@@ -143,15 +171,14 @@ const RecentRestaurants = () => {
 
 const styles = {
     recentCardContainer: {
-        padding: '0 8px',
-        height: '100%',
+        padding: '0',
+        height: '220px',
     },
     recentCard: {
         borderRadius: '16px',
         overflow: 'hidden',
-        height: '180px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        height: '220px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         position: 'relative',
     },
     recentImageContainer: {
@@ -178,32 +205,42 @@ const styles = {
         left: 0,
         right: 0,
         top: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.1) 100%)',
     },
     recentContent: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: '16px',
+        padding: '20px',
     },
     recentName: {
         color: 'white',
-        marginBottom: '8px',
-        fontSize: '18px',
+        marginBottom: '6px',
+        fontSize: '20px',
         fontWeight: '600',
+        textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+    },
+    recentDetails: {
+        display: 'flex',
+        alignItems: 'center',
+        color: 'white',
+        fontSize: '14px',
+        fontWeight: '500',
         textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+        gap: '2px',
     },
     dateBadge: {
         display: 'inline-flex',
         alignItems: 'center',
-        backgroundColor: 'rgba(80, 112, 60, 0.85)',
+        backgroundColor: 'rgba(80, 112, 60, 0.9)',
         color: 'white',
-        padding: '4px 8px',
-        borderRadius: '12px',
+        padding: '6px 10px',
+        borderRadius: '20px',
         fontSize: '12px',
         fontWeight: '500',
-        marginBottom: '8px',
+        marginBottom: '10px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
     },
     disabledOverlay: {
         position: 'absolute',
@@ -224,7 +261,9 @@ const styles = {
         borderRadius: '8px',
         fontWeight: '600',
         textAlign: 'center',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
     },
 };
 
 export default RecentRestaurants;
+
