@@ -10,27 +10,10 @@ import RestaurantMap from "../components/RestaurantMap";
 import { getRestaurantsByProximity } from "../redux/thunks/restaurantThunks";
 import { SearchforRestaurantsThunk } from "../redux/thunks/searchThunks";
 import debounce from 'lodash/debounce';
-import CategoryFilter from "@src/components/CategoryFilter.jsx";
 import Recommendations from "@src/components/Recommendations.jsx";
 import FlashDealsModal from "@src/components/FlashDealsModal.jsx";
 import FlashDealsFloatingBadge from "@src/components/FlashDealsFloatingBadge.jsx";
-// Import the new components
-
-
-// List of available categories - can be moved to CategoryFilter component if needed
-const CATEGORIES = [
-    "All Categories",
-    "Baked Goods",
-    "Fruits & Vegetables",
-    "Meat & Seafood",
-    "Dairy Products",
-    "Ready Meals",
-    "Snacks",
-    "Beverages",
-    "Pantry Items",
-    "Frozen Foods",
-    "Organic Products"
-];
+// Removed CategoryFilter import as it's now handled in RestaurantList component
 
 function HomeRestaurantView() {
     // Existing states for component
@@ -42,7 +25,7 @@ function HomeRestaurantView() {
     const [, setRefreshing] = useState(false);
     // New states for new features
     const [showFlashDeals, setShowFlashDeals] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState("All Categories");
+    // Removed selectedCategory state as it's now handled in RestaurantList
 
     const searchInputRef = useRef(null);
     const dispatch = useDispatch();
@@ -65,18 +48,10 @@ function HomeRestaurantView() {
         state.restaurant.restaurantsProximity ?? []
     );
 
-    // Updated filtered restaurants logic to include category filtering
+    // Updated filtered restaurants logic to remove category filtering from this component
     const filteredRestaurants = searchText === ""
-        ? (selectedCategory === "All Categories"
-            ? restaurants
-            : restaurants.filter(restaurant => restaurant.category === selectedCategory))
-        : (selectedCategory === "All Categories"
-                ? restaurants.filter((restaurant) => searchResults.map(result => result.id).includes(Number(restaurant?.id)))
-                : restaurants.filter((restaurant) =>
-                    searchResults.map(result => result.id).includes(Number(restaurant?.id)) &&
-                    restaurant.category === selectedCategory
-                )
-        );
+        ? restaurants
+        : restaurants.filter((restaurant) => searchResults.map(result => result.id).includes(Number(restaurant?.id)));
 
     // Existing debounced search function
     const debouncedSearch = useCallback(
@@ -299,13 +274,6 @@ function HomeRestaurantView() {
 
             <section className="content-section py-4">
                 <div className="container">
-                    {/* New Category Filter Component */}
-                    <CategoryFilter
-                        selectedCategory={selectedCategory}
-                        onSelectCategory={setSelectedCategory}
-                        categories={CATEGORIES}
-                    />
-
                     {/* New Recommendations Component */}
                     <Recommendations />
 
@@ -577,3 +545,4 @@ function HomeRestaurantView() {
 }
 
 export default HomeRestaurantView;
+
