@@ -1,10 +1,17 @@
-import { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import {getRecommendationsThunk} from "@src/redux/thunks/recommendationThunks.js";
+import { getRecommendationsThunk } from "@src/redux/thunks/recommendationThunks.js";
+import { isRestaurantOpen } from "@src/utils/RestaurantFilters.js";
+
+// Define consistent card sizing (similar to mobile)
+const CARD_WIDTH = 200;
+const CARD_MARGIN = 16;
+const CARD_HEIGHT = 140;
 
 const Recommendations = () => {
     const dispatch = useDispatch();
+    const scrollRef = useRef(null);
 
     const { recommendationIds, loading, error, status } = useSelector(
         (state) => state.recommendation
@@ -23,6 +30,7 @@ const Recommendations = () => {
     useEffect(() => {
         dispatch(getRecommendationsThunk());
     }, [dispatch]);
+
 
     // Styles
     const styles = {
@@ -50,30 +58,10 @@ const Recommendations = () => {
             marginRight: '10px',
         },
         headerTitle: {
-            fontSize: '20px',
+            fontSize: '18px',
             fontWeight: '600',
             color: '#111827',
             margin: '0',
-        },
-        seeAllLink: {
-            color: '#50703C',
-            textDecoration: 'none',
-            fontSize: '14px',
-            fontWeight: '500',
-            display: 'flex',
-            alignItems: 'center',
-        },
-        loadingContainer: {
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        loadingText: {
-            color: '#50703C',
-            marginTop: '8px',
-            fontSize: '14px',
         },
         carousel: {
             display: 'flex',
@@ -82,9 +70,10 @@ const Recommendations = () => {
             scrollBehavior: 'smooth',
         },
         card: {
-            width: '220px',
+            width: `${CARD_WIDTH}px`,
+            height: `${CARD_HEIGHT}px`,
             flexShrink: 0,
-            marginRight: '16px',
+            marginRight: `${CARD_MARGIN}px`,
         },
         cardLink: {
             display: 'block',
@@ -94,10 +83,12 @@ const Recommendations = () => {
             overflow: 'hidden',
             boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
             transition: 'transform 0.2s',
+            height: '100%',
         },
         cardImage: {
             position: 'relative',
-            height: '140px',
+            height: '100%',
+            width: '100%',
             overflow: 'hidden',
         },
         image: {
@@ -122,20 +113,6 @@ const Recommendations = () => {
             height: '60%',
             background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.7))',
         },
-        overlay: {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'white',
-            fontWeight: '600',
-            zIndex: 2,
-        },
         contentContainer: {
             position: 'absolute',
             left: 0,
@@ -145,10 +122,9 @@ const Recommendations = () => {
             zIndex: 1,
         },
         badge: {
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             backgroundColor: 'rgba(80,112,60,0.8)',
-            alignSelf: 'flex-start',
             paddingLeft: '6px',
             paddingRight: '6px',
             paddingTop: '2px',
@@ -172,7 +148,48 @@ const Recommendations = () => {
             color: '#fff',
             textShadow: '0 1px 2px rgba(0, 0, 0, 0.75)',
             margin: '0',
-        }
+        },
+        loadingContainer: {
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        loadingText: {
+            color: '#50703C',
+            marginTop: '8px',
+            fontSize: '14px',
+        },
+        debugContainer: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+        },
+        debugButton: {
+            backgroundColor: '#f3f4f6',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            color: '#50703C',
+            border: 'none',
+            cursor: 'pointer',
+        },
+        overlay: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: 'white',
+            fontWeight: '600',
+            zIndex: 2,
+            borderRadius: '12px',
+        },
     };
 
     // Don't show anything if we're still loading
@@ -207,17 +224,13 @@ const Recommendations = () => {
                     <i className="bi bi-star-fill" style={styles.headerIcon}></i>
                     <h3 style={styles.headerTitle}>Recommended For You</h3>
                 </div>
-                <div>
-                    <Link to="#" style={styles.seeAllLink}>
-                        See All <i className="bi bi-chevron-right"></i>
-                    </Link>
-                </div>
+
             </div>
 
-            <div style={styles.carousel}>
+            <div style={styles.carousel} ref={scrollRef}>
                 {recommendedRestaurants.map((restaurant) => {
-                    const isOpen = true; // Replace with actual logic
-                    const hasStock = true; // Replace with actual logic
+                    const isOpen = isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd);
+                    const hasStock = restaurant.listings > 0;
 
                     const isDisabled = !isOpen || !hasStock;
                     const overlayMessage = !isOpen
@@ -233,13 +246,14 @@ const Recommendations = () => {
                                 style={{
                                     ...styles.cardLink,
                                     pointerEvents: isDisabled ? 'none' : 'auto',
-                                    opacity: isDisabled ? 0.7 : 1,
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = 'translateY(-5px)';
+                                    e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
                                 }}
                             >
                                 <div style={styles.cardImage}>
@@ -275,3 +289,4 @@ const Recommendations = () => {
 };
 
 export default Recommendations;
+

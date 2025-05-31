@@ -1,15 +1,17 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getRestaurantsByProximity } from "@src/redux/thunks/restaurantThunks";
 import { addFavoriteThunk, removeFavoriteThunk, getFavoritesThunk } from "@src/redux/thunks/userThunks";
 import { tokenService } from "@src/services/tokenService.js";
+import CategoryFilter from "./CategoryFilter";
 
 function RestaurantList() {
     const dispatch = useDispatch();
     const restaurants = useSelector((state) => state.restaurant.restaurantsProximity);
     const loading = useSelector((state) => state.restaurant.restaurantsProximityLoading);
     const favoriteRestaurantsIDs = useSelector((state) => state.restaurant.favoriteRestaurantsIDs || []);
+    const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
     useEffect(() => {
         dispatch(getRestaurantsByProximity());
@@ -33,6 +35,14 @@ function RestaurantList() {
         }
     }, [dispatch, favoriteRestaurantsIDs]);
 
+    const handleSelectCategory = (category) => {
+        setSelectedCategory(category);
+    };
+
+    const filteredRestaurants = selectedCategory === "All Categories"
+        ? restaurants
+        : restaurants.filter(restaurant => restaurant.category === selectedCategory || restaurant.categoryName === selectedCategory);
+
     if (loading) {
         return (
             <div className="text-center my-4">
@@ -54,82 +64,93 @@ function RestaurantList() {
 
     return (
         <div className="restaurant-list">
-            <div className="row">
-                {restaurants.map((restaurant) => {
-                    const isFavorite = favoriteRestaurantsIDs.includes(restaurant.id);
+            <CategoryFilter
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleSelectCategory}
+            />
 
-                    return (
-                        <div className="col-md-4 mb-4" key={restaurant.id}>
-                            <Link to={`/Restaurant/${restaurant.id}`} className="restaurant-card">
-                                <div className="card h-100">
-                                    <div className="card-img-container">
-                                        <img
-                                            src={restaurant.image_url || 'https://via.placeholder.com/300x200?text=Restaurant'}
-                                            className="card-img-top"
-                                            alt={restaurant.restaurantName}
-                                        />
-                                        {restaurant.category && (
-                                            <span className="category-badge">{restaurant.category}</span>
-                                        )}
-                                        <button
-                                            className="favorite-btn"
-                                            onClick={(e) => handleFavoritePress(e, restaurant.id)}
-                                        >
-                                            <i className={`bi ${isFavorite ? "bi-heart-fill" : "bi-heart"}`}
-                                               style={{ color: isFavorite ? "#FF4081" : "#757575" }}
-                                            ></i>
-                                        </button>
-                                    </div>
-                                    <div className="card-body">
-                                        <div className="restaurant-header">
-                                            <h5 className="card-title">{restaurant.restaurantName}</h5>
-                                            <div className="rating-container">
-                                                <i className="bi bi-star-fill"></i>
-                                                <span className="rating">{restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'}</span>
+            {filteredRestaurants.length === 0 ? (
+                <div className="alert alert-info my-4">
+                    No restaurants found in the {selectedCategory} category. Try selecting a different category.
+                </div>
+            ) : (
+                <div className="row">
+                    {filteredRestaurants.map((restaurant) => {
+                        const isFavorite = favoriteRestaurantsIDs.includes(restaurant.id);
+
+                        return (
+                            <div className="col-md-4 mb-4" key={restaurant.id}>
+                                <Link to={`/Restaurant/${restaurant.id}`} className="restaurant-card">
+                                    <div className="card h-100">
+                                        <div className="card-img-container">
+                                            <img
+                                                src={restaurant.image_url || 'https://via.placeholder.com/300x200?text=Restaurant'}
+                                                className="card-img-top"
+                                                alt={restaurant.restaurantName}
+                                            />
+                                            {restaurant.category && (
+                                                <span className="category-badge">{restaurant.category || restaurant.categoryName}</span>
+                                            )}
+                                            <button
+                                                className="favorite-btn"
+                                                onClick={(e) => handleFavoritePress(e, restaurant.id)}
+                                            >
+                                                <i className={`bi ${isFavorite ? "bi-heart-fill" : "bi-heart"}`}
+                                                   style={{ color: isFavorite ? "#FF4081" : "#757575" }}
+                                                ></i>
+                                            </button>
+                                        </div>
+                                        <div className="card-body">
+                                            <div className="restaurant-header">
+                                                <h5 className="card-title">{restaurant.restaurantName}</h5>
+                                                <div className="rating-container">
+                                                    <i className="bi bi-star-fill"></i>
+                                                    <span className="rating">{restaurant.rating ? restaurant.rating.toFixed(1) : '0.0'}</span>
+                                                </div>
+                                            </div>
+                                            <p className="card-text restaurant-desc">{restaurant.restaurantDescription}</p>
+                                            <div className="restaurant-info">
+                                                <div className="info-item">
+                                                    <i className="bi bi-geo-alt"></i>
+                                                    <span>{restaurant.distance_km ? `${restaurant.distance_km.toFixed(1)} km away` : 'Distance unavailable'}</span>
+                                                </div>
+                                                {restaurant.delivery && (
+                                                    <div className="info-item">
+                                                        <i className="bi bi-truck"></i>
+                                                        <span>{Math.round(15 + (restaurant.distance_km || 3) * 5)} min</span>
+                                                    </div>
+                                                )}
+                                                {restaurant.pickup && (
+                                                    <div className="info-item">
+                                                        <i className="bi bi-bag"></i>
+                                                        <span>Pickup</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="restaurant-footer">
+                                                {restaurant.deliveryFee !== undefined && restaurant.delivery && (
+                                                    <div className="footer-item">
+                                                        <span className="footer-label">Delivery Fee:</span>
+                                                        <span className="footer-value">
+                                                            {restaurant.deliveryFee > 0 ? `${restaurant.deliveryFee.toFixed(2)} $` : 'Free'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {restaurant.minOrderAmount !== undefined && restaurant.minOrderAmount !== null && restaurant.delivery && (
+                                                    <div className="footer-item">
+                                                        <span className="footer-label">Min Order:</span>
+                                                        <span className="footer-value">${restaurant.minOrderAmount.toFixed(2)}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <p className="card-text restaurant-desc">{restaurant.restaurantDescription}</p>
-                                        <div className="restaurant-info">
-                                            <div className="info-item">
-                                                <i className="bi bi-geo-alt"></i>
-                                                <span>{restaurant.distance_km ? `${restaurant.distance_km.toFixed(1)} km away` : 'Distance unavailable'}</span>
-                                            </div>
-                                            {restaurant.delivery && (
-                                                <div className="info-item">
-                                                    <i className="bi bi-truck"></i>
-                                                    <span>{Math.round(15 + (restaurant.distance_km || 3) * 5)} min</span>
-                                                </div>
-                                            )}
-                                            {restaurant.pickup && (
-                                                <div className="info-item">
-                                                    <i className="bi bi-bag"></i>
-                                                    <span>Pickup</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="restaurant-footer">
-                                            {restaurant.deliveryFee !== undefined && restaurant.delivery && (
-                                                <div className="footer-item">
-                                                    <span className="footer-label">Delivery Fee:</span>
-                                                    <span className="footer-value">
-                                                        {restaurant.deliveryFee > 0 ? `${restaurant.deliveryFee.toFixed(2)} $` : 'Free'}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {restaurant.minOrderAmount !== undefined && restaurant.minOrderAmount !== null && restaurant.delivery && (
-                                                <div className="footer-item">
-                                                    <span className="footer-label">Min Order:</span>
-                                                    <span className="footer-value">${restaurant.minOrderAmount.toFixed(2)}</span>
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        </div>
-                    );
-                })}
-            </div>
+                                </Link>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             <style jsx>{`
                 .restaurant-card {
@@ -322,3 +343,4 @@ function RestaurantList() {
 }
 
 export default RestaurantList;
+

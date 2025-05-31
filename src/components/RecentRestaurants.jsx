@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getRecentRestaurantsThunk } from "../redux/thunks/restaurantThunks";
 import { isRestaurantOpen } from "../utils/RestaurantFilters.js";
@@ -7,12 +7,19 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+// Define consistent card sizing (similar to mobile)
+const CARD_WIDTH = 200;  // Fixed width for consistency
+const CARD_MARGIN = 16;  // Margin between cards
+const CARD_HEIGHT = 180; // Card height - fixed value for all cards
+
 const RecentRestaurants = () => {
     const dispatch = useDispatch();
     const { recentRestaurantIDs, recentRestaurantsLoading, restaurantsProximity } = useSelector(
         (state) => state.restaurant
     );
     const sliderRef = useRef(null);
+    // Track the current slide for animation effects
+    const [currentSlide, setCurrentSlide] = useState(0);
 
     useEffect(() => {
         dispatch(getRecentRestaurantsThunk());
@@ -33,6 +40,10 @@ const RecentRestaurants = () => {
         slidesToShow: 4,
         slidesToScroll: 1,
         arrows: false,
+        // Add smooth scrolling behavior
+        swipeToSlide: true,
+        cssEase: "cubic-bezier(0.23, 1, 0.32, 1)",
+        afterChange: (index) => setCurrentSlide(index),
         responsive: [
             {
                 breakpoint: 1200,
@@ -92,24 +103,9 @@ const RecentRestaurants = () => {
                             <div style={styles.recentContent}>
                                 <div style={styles.dateBadge}>
                                     <i className="bi bi-clock-history me-1"></i>
-                                    <span>Recently Visited</span>
+                                    <span>Recent</span>
                                 </div>
                                 <h5 style={styles.recentName}>{item.restaurantName}</h5>
-                                <div style={styles.recentDetails}>
-                                    <span className="rating">
-                                        <i className="bi bi-star-fill text-warning me-1"></i>
-                                        {item.rating || "New"}
-                                    </span>
-                                    <span className="divider">•</span>
-                                    <span className="restaurant-type">
-                                        {item.categoryName || "Restaurant"}
-                                    </span>
-                                </div>
-                                {isDisabled && (
-                                    <div style={styles.disabledOverlay}>
-                                        <span style={styles.disabledMessage}>{overlayMessage}</span>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -119,12 +115,12 @@ const RecentRestaurants = () => {
     };
 
     return (
-        <div className="recent-restaurants my-4">
-            <div className="d-flex align-items-center justify-content-between mb-3">
-                <h3 className="section-title">
-                    <i className="bi bi-clock-history me-2 text-primary"></i>
-                    Recently Visited
-                </h3>
+        <div className="recent-restaurants">
+            <div style={styles.headerContainer}>
+                <div style={styles.headerLeft}>
+                    <i className="bi bi-clock-history" style={styles.headerIcon}></i>
+                    <h3 style={styles.headerTitle}>Recent Orders</h3>
+                </div>
             </div>
             <div className="slider-container">
                 <Slider ref={sliderRef} {...settings}>
@@ -134,35 +130,32 @@ const RecentRestaurants = () => {
 
             <style jsx>{`
                 .recent-restaurants {
-                    margin-bottom: 40px;
-                    padding: 15px;
-                    background-color: #f8f9fa;
-                    border-radius: 12px;
-                }
-                .section-title {
-                    font-weight: 700;
-                    font-size: 24px;
-                    margin-bottom: 0;
-                    display: flex;
-                    align-items: center;
+                    background-color: #FFFFFF;
+                    padding-bottom: 16px;
+                    margin-bottom: 20px;
                 }
                 .slider-container {
                     padding: 10px 0;
                 }
                 .recent-card {
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
-                    margin: 0 15px;
+                    height: ${CARD_HEIGHT}px !important;
                 }
                 .recent-card:hover {
                     transform: translateY(-5px);
                     box-shadow: 0 10px 20px rgba(0,0,0,0.15);
                 }
-                /* Override slick slider default styles */
-                .slick-slide {
-                    padding: 0 10px;
+                .slick-track {
+                    display: flex;
                 }
-                .slick-list {
-                    margin: 0 -10px;
+                .slick-slide {
+                    height: inherit;
+                    display: flex !important;
+                }
+                .slick-slide > div {
+                    width: 100%;
+                    display: flex;
+                    height: ${CARD_HEIGHT}px !important;
                 }
             `}</style>
         </div>
@@ -170,15 +163,41 @@ const RecentRestaurants = () => {
 };
 
 const styles = {
+    headerContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 16px',
+        borderBottomWidth: '1px',
+        borderBottomStyle: 'solid',
+        borderBottomColor: '#E5E7EB',
+    },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+    },
+    headerIcon: {
+        fontSize: '20px',
+        color: '#50703C',
+    },
+    headerTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#111827',
+        margin: 0,
+    },
     recentCardContainer: {
+        width: `${CARD_WIDTH}px`,
+        height: `${CARD_HEIGHT}px`,
         padding: '0',
-        height: '220px',
     },
     recentCard: {
-        borderRadius: '16px',
+        borderRadius: '12px',
         overflow: 'hidden',
-        height: '220px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        height: `${CARD_HEIGHT}px`, // Fixed height
+        width: '100%',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         position: 'relative',
     },
     recentImageContainer: {
@@ -197,50 +216,40 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#f3f4f6',
     },
     gradientOverlay: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        top: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.1) 100%)',
+        top: '40%',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 70%, transparent 100%)',
     },
     recentContent: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: '20px',
+        padding: '8px',
     },
     recentName: {
         color: 'white',
-        marginBottom: '6px',
-        fontSize: '20px',
-        fontWeight: '600',
-        textShadow: '0 1px 3px rgba(0,0,0,0.6)',
-    },
-    recentDetails: {
-        display: 'flex',
-        alignItems: 'center',
-        color: 'white',
+        marginBottom: '0',
         fontSize: '14px',
-        fontWeight: '500',
+        fontWeight: '600',
         textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-        gap: '2px',
     },
     dateBadge: {
         display: 'inline-flex',
         alignItems: 'center',
-        backgroundColor: 'rgba(80, 112, 60, 0.9)',
+        backgroundColor: 'rgba(0,0,0,0.5)',
         color: 'white',
-        padding: '6px 10px',
-        borderRadius: '20px',
+        padding: '2px 6px',
+        borderRadius: '6px',
         fontSize: '12px',
-        fontWeight: '500',
-        marginBottom: '10px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+        fontWeight: '600',
+        marginBottom: '4px',
     },
     disabledOverlay: {
         position: 'absolute',

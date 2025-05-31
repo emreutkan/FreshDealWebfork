@@ -12,13 +12,21 @@ export const getRecommendationsThunk = createAsyncThunk(
                 return rejectWithValue('Authentication token is missing.');
             }
 
-            const response = await axios.get(`${API_BASE_URL}/recommendations`, {
+            // Updated to match mobile endpoint
+            const response = await axios.get(`${API_BASE_URL}/api/recommendations/users`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            return response.data;
+            // Match mobile implementation's response handling
+            if (response.data && response.data.success && Array.isArray(response.data.data)) {
+                return { restaurants: response.data.data };
+            } else {
+                return rejectWithValue(response.data?.message || 'Invalid response format');
+            }
         } catch (error) {
-            return rejectWithValue('Failed to fetch recommendations: ' + error.message);
+            console.error('Recommendations Error:', error);
+            return rejectWithValue('Failed to fetch recommendations: ' + (error.message || 'Unknown error'));
         }
     }
 );
+
