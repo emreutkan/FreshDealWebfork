@@ -17,7 +17,7 @@ const CheckoutSuccess = ({ onAnimationComplete }) => {
     }, [onAnimationComplete]);
 
     return (
-        <div className="checkout-success-container">
+        <div className="checkout-success-container" data-testid="checkout-success-icon">
             <div className="checkmark-container">
                 <i className="bi bi-check-circle-fill"></i>
             </div>

@@ -237,7 +237,7 @@ function RestaurantMap() {
     };
 
     return (
-        <div className="restaurant-map-container mb-4">
+        <div className="restaurant-map-container mb-4" data-testid="restaurant-map-root">
             <div className="map-header mb-2">
                 <h2 className="text-dark fw-bold">Restaurants Near You</h2>
                 <p className="lead">Find nearby restaurants with surplus food on the map</p>

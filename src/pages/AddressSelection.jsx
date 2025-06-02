@@ -8,7 +8,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { tokenService } from "@src/services/tokenService.js";
 import { getUserDataThunk } from "@src/redux/thunks/userThunks";
 
-const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const mapContainerStyle = {
   width: "100%",
