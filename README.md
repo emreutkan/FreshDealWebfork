@@ -2,6 +2,10 @@
 
 ![FreshDeal Logo](./public/logo.webp)
 
+## Live Demo
+
+Visit our live application: [https://lively-bush-0a480ff03.6.azurestaticapps.net/](https://lively-bush-0a480ff03.6.azurestaticapps.net/)
+
 ## Overview
 
 FreshDeal is a modern food delivery web application built with React that connects users with their favorite restaurants. The platform offers a seamless experience for discovering, ordering, and tracking food deliveries with additional features like achievement systems and restaurant rankings.
