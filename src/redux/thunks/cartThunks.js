@@ -1,19 +1,41 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
 import {addToCartAPI, getUsersCartItemsAPI, removeFromCart, resetCartAPI, updateCartAPI} from "@src/redux/api/cartAPI";
 import {tokenService} from "@src/services/tokenService.js";
+import {setSelectedRestaurant} from "@src/redux/slices/restaurantSlice.js";
+import {getListingsThunk, getRestaurantThunk} from "@src/redux/thunks/restaurantThunks.js";
 
 /**
  * Thunk to fetch the user's cart items.
  */
 export const fetchCart = createAsyncThunk(
     "cart/fetchCart",
-    async (_, {rejectWithValue}) => {
+    async (_, {dispatch, getState, rejectWithValue}) => {
         const token = await tokenService.getToken();
         if (!token) {
             return rejectWithValue("Authentication token is missing.");
         }
         try {
-            return await getUsersCartItemsAPI(token);
+            const cartItems = await getUsersCartItemsAPI(token);
+
+            // Set selected restaurant if cart has items
+            if (cartItems && cartItems.length > 0) {
+                const restaurantId = cartItems[0].restaurant_id;
+                const state = getState();
+                const restaurantsProximity = state.restaurant.restaurantsProximity;
+
+                // Find restaurant in proximity list
+                const restaurant = restaurantsProximity.find(r => r.id === restaurantId);
+                if (restaurant) {
+                    // Set selected restaurant and fetch its details
+                    dispatch(setSelectedRestaurant(restaurant));
+                    dispatch(getRestaurantThunk(restaurant.id));
+
+                    // Also fetch the restaurant's listings/menu items
+                    dispatch(getListingsThunk({ restaurantId }));
+                }
+            }
+
+            return cartItems;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }
@@ -88,15 +110,19 @@ export const removeItemFromCart = createAsyncThunk(
  */
 export const resetCart = createAsyncThunk(
     "cart/resetCart",
-    async (_, {rejectWithValue}) => {
+    async (_, {dispatch, rejectWithValue}) => {
         const token = await tokenService.getToken();
         if (!token) {
             return rejectWithValue("Authentication token is missing.");
         }
         try {
-            return await resetCartAPI(token);
+            const response = await resetCartAPI(token);
+            // Refresh the cart after resetting
+            await dispatch(fetchCart());
+            return response;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }
     }
 );
+

@@ -89,7 +89,7 @@ export const removeFromCart = async (listing_id, token) => {
 };
 
 /**
- * Reset the user's cart (remove all items).
+ * Reset/clear the user's entire cart.
  */
 export const resetCartAPI = async (token) => {
     const functionName = "resetCartAPI";
@@ -99,7 +99,7 @@ export const resetCartAPI = async (token) => {
 
     try {
         const response = await axios.post(endpoint, {}, {
-            headers: {Authorization: `Bearer ${token}`},
+            headers: { Authorization: `Bearer ${token}` },
         });
         logResponse(functionName, endpoint, response.data);
         return response.data;
@@ -108,3 +108,4 @@ export const resetCartAPI = async (token) => {
         throw error;
     }
 };
+

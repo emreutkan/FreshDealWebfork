@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchCart } from '@src/redux/thunks/cartThunks.js';
+import { fetchCart, resetCart, removeItemFromCart, updateCartItem } from '@src/redux/thunks/cartThunks.js';
 import { setDeliveryMethod, setSelectedRestaurant } from '@src/redux/slices/restaurantSlice.js';
 import { getRestaurantThunk } from '@src/redux/thunks/restaurantThunks.js';
 
@@ -37,6 +37,7 @@ const Cart = () => {
                 }
             } else {
                 alert('Restaurant not found. The restaurant is not in proximity. Cart will be cleared.');
+                dispatch(resetCart());
             }
         }
     }, [cartItems, restaurantsProximity, dispatch]);
@@ -72,10 +73,9 @@ const Cart = () => {
     const finalTotal = currentTotal + deliveryFee;
 
     const handleRemoveFromCart = (listing) => {
-        dispatch({
-            type: 'cart/removeItemFromCart',
-            payload: { listing_id: listing.id }
-        });
+        dispatch(removeItemFromCart({
+            listing_id: listing.id
+        }));
     };
 
     const handleUpdateQuantity = (listing, newCount) => {
@@ -84,19 +84,20 @@ const Cart = () => {
             return;
         }
 
-        dispatch({
-            type: 'cart/updateCartItem',
+        dispatch(updateCartItem({
             payload: {
-                payload: {
-                    listing_id: listing.id,
-                    count: newCount
-                }
+                listing_id: listing.id,
+                count: newCount
             }
-        });
+        }));
     };
 
     const handleToggleDeliveryMethod = (newIsPickup) => {
         dispatch(setDeliveryMethod(newIsPickup));
+    };
+
+    const handleClearCart = () => {
+        dispatch({ type: 'cart/clearCart' });
     };
 
     const getFreshScoreColor = (score) => {
@@ -189,8 +190,8 @@ const Cart = () => {
 
                                                 <div className="price-quantity-row">
                                                     <div className="price-container">
-                                                        <div className="current-price">{displayPrice.toFixed(2)} TL</div>
-                                                        {listing.original_price > displayPrice && (
+                                                        <div className="current-price">{(displayPrice || 0).toFixed(2)} TL</div>
+                                                        {listing.original_price && displayPrice && listing.original_price > displayPrice && (
                                                             <div className="original-price">{listing.original_price.toFixed(2)} TL</div>
                                                         )}
                                                     </div>
@@ -216,13 +217,6 @@ const Cart = () => {
                                                 <div className="item-subtotal">
                                                     <span>Subtotal:</span> <strong>{itemSubtotal.toFixed(2)} TL</strong>
                                                 </div>
-
-                                                <button
-                                                    className="remove-item-btn"
-                                                    onClick={() => handleRemoveFromCart(listing)}
-                                                >
-                                                    <i className="bi bi-trash"></i> Remove
-                                                </button>
                                             </div>
                                         </div>
                                     );
@@ -255,6 +249,13 @@ const Cart = () => {
                                     <i className="bi bi-cart-check"></i>
                                     Proceed to Checkout
                                 </Link>
+
+                                <button
+                                    onClick={handleClearCart}
+                                    className="clear-cart-btn">
+                                    <i className="bi bi-trash"></i>
+                                    Clear Cart
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -465,18 +466,6 @@ const Cart = () => {
                     margin-bottom: 12px;
                 }
                 
-                .remove-item-btn {
-                    background: none;
-                    border: none;
-                    color: #DC2626;
-                    font-size: 14px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    padding: 0;
-                }
-                
                 .order-summary {
                     background-color: #FFFFFF;
                     border-radius: 12px;
@@ -533,6 +522,29 @@ const Cart = () => {
                 
                 .checkout-btn:hover {
                     background-color: #455f31;
+                    color: white;
+                }
+                
+                .clear-cart-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    background-color: #DC2626;
+                    color: white;
+                    width: 100%;
+                    padding: 14px;
+                    border-radius: 8px;
+                    border: none;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    margin-top: 10px;
+                    text-align: center;
+                }
+                
+                .clear-cart-btn:hover {
+                    background-color: #b71c1c;
                     color: white;
                 }
                 

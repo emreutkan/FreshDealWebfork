@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { getRestaurantThunk, getListingsThunk, getRestaurantBadgesThunk } from "@src/redux/thunks/restaurantThunks.js";
-import { addItemToCart, fetchCart, removeItemFromCart, updateCartItem } from "@src/redux/thunks/cartThunks.js";
+import { addItemToCart, fetchCart, removeItemFromCart, updateCartItem, resetCart } from "@src/redux/thunks/cartThunks.js";
 import { format, addDays } from 'date-fns';
 import PunishmentHistorySection from "../components/PunishmentHistorySection";
 
@@ -78,7 +78,23 @@ const RestaurantDetails = () => {
         if (existingCartItems.length > 0) {
             const existingRestaurantId = existingCartItems[0].restaurant_id;
             if (existingRestaurantId !== item.restaurant_id) {
-                alert('You can only add items from the same restaurant to your cart.');
+                const willClearCart = window.confirm(
+                    'You can only add items from the same restaurant to your cart.\n\n' +
+                    'Would you like to clear your current cart and add this new item?'
+                );
+
+                if (willClearCart) {
+                    try {
+                        await dispatch(resetCart());
+                        // Wait a moment for the cart to be cleared then add the new item
+                        setTimeout(() => {
+                            dispatch(addItemToCart({payload: {listing_id: item.id}}));
+                        }, 300);
+                    } catch (error) {
+                        console.error('Error resetting cart:', error);
+                        alert('Could not clear your cart. Please try again.');
+                    }
+                }
                 return;
             }
         }
@@ -539,12 +555,14 @@ const RestaurantDetails = () => {
                                     <div className="attribute-item">
                                         <span className="attribute-label">Best Before:</span>
                                         <span className="attribute-value">
-                                            {format(addDays(new Date(), selectedListing.expiry_days), 'PP')}
+                                            {selectedListing.expiry_days && !isNaN(selectedListing.expiry_days) ?
+                                                format(addDays(new Date(), Number(selectedListing.expiry_days)), 'PP') :
+                                                'Not specified'}
                                         </span>
                                     </div>
                                     <div className="attribute-item">
                                         <span className="attribute-label">Category:</span>
-                                        <span className="attribute-value">{selectedListing.category}</span>
+                                        <span className="attribute-value">{selectedListing.category || 'Uncategorized'}</span>
                                     </div>
                                 </div>
                             </div>

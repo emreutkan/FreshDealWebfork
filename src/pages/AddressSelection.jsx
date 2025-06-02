@@ -8,7 +8,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { tokenService } from "@src/services/tokenService.js";
 import { getUserDataThunk } from "@src/redux/thunks/userThunks";
 
-const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const mapContainerStyle = {
   width: "100%",
@@ -68,7 +68,7 @@ const AddressSelection = () => {
 
   // States for component
   const [redirectToLogin, setRedirectToLogin] = useState(false);
-  const [loaderStatus, setLoaderStatus] = useState(true);
+  const [, setLoaderStatus] = useState(true);
   const [coordinates, setCoordinates] = useState({ lat: 39.92077, lng: 32.85411 });
   const [addressData, setAddressData] = useState(null);
   const [apartmentNo, setApartmentNo] = useState(null);
@@ -950,3 +950,4 @@ const AddressSelection = () => {
 };
 
 export default AddressSelection;
+
