@@ -30,8 +30,14 @@ export const fetchCart = createAsyncThunk(
                     dispatch(setSelectedRestaurant(restaurant));
                     dispatch(getRestaurantThunk(restaurant.id));
 
-                    // Also fetch the restaurant's listings/menu items
-                    dispatch(getListingsThunk({ restaurantId }));
+                    // Check if we already have listings for this restaurant in Redux state
+                    const currentListingsRestaurantId = state.listings?.currentRestaurantId;
+                    const hasListings = state.listings?.items?.length > 0;
+
+                    // Only fetch listings if they don't already belong to the selected restaurant
+                    if (!hasListings || currentListingsRestaurantId !== restaurantId) {
+                        dispatch(getListingsThunk({ restaurantId }));
+                    }
                 }
             }
 
