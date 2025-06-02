@@ -218,11 +218,25 @@ export const logoutUserThunk = createAsyncThunk(
     "user/logoutUser",
     async (_, { dispatch, rejectWithValue }) => {
         try {
-            // Perform any necessary cleanup, e.g., token invalidation
+            // Clear all tokens from storage
             await tokenService.clearToken();
+
+            // Remove any additional stored tokens
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('lastLoginToken');
+            sessionStorage.removeItem('loginTimestamp');
+
+            // Dispatch the main logout action that will reset all slices
+            dispatch({ type: 'user/logout' });
+
+            // Also reset the token in the user slice
             dispatch(setToken(null));
+
+            return { success: true };
         } catch (error) {
+            console.error("Logout failed:", error);
             return rejectWithValue("Logout failed");
         }
     }
 );
+

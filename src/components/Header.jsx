@@ -49,9 +49,19 @@ const Header = () => {
         };
     }, [dropdownRef]);
 
-    const handleLogout = () => {
-        dispatch(logoutUserThunk());
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUserThunk()).unwrap();
+            // Force navigation to home page
+            navigate('/');
+            // Force reload of the page to ensure all state is completely reset
+            // This is a fallback in case the Redux state isn't fully cleaned up
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
     };
 
     const totalItems = cartItems.reduce((sum, item) => sum + (item.count || 1), 0);
@@ -381,3 +391,4 @@ const Header = () => {
 };
 
 export default Header;
+
