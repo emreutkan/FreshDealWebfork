@@ -45,7 +45,7 @@ function RestaurantList() {
 
     if (loading) {
         return (
-            <div className="text-center my-4">
+            <div className="text-center my-4" data-testid="restaurant-list-root">
                 <div className="spinner-border text-success" role="status">
                     <span className="visually-hidden">Loading...</span>
                 </div>
@@ -55,7 +55,7 @@ function RestaurantList() {
 
     if (!restaurants || restaurants.length === 0) {
         return (
-            <div className="no-restaurants my-4">
+            <div className="no-restaurants my-4" data-testid="restaurant-list-root">
                 <p>No restaurants found in your area.</p>
                 <p>Try changing your delivery address or check back later.</p>
             </div>
@@ -63,7 +63,7 @@ function RestaurantList() {
     }
 
     return (
-        <div className="restaurant-list">
+        <div className="restaurant-list" data-testid="restaurant-list-root">
             <CategoryFilter
                 selectedCategory={selectedCategory}
                 onSelectCategory={handleSelectCategory}
