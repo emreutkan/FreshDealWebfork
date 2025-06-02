@@ -170,7 +170,7 @@ const Login = () => {
                             </label>
                           </div>
                           <div>
-                            <Link to="/forgot-password" className="text-success">Forgot password?</Link>
+                            <Link to="/ForgotPassword" className="text-success">Forgot password?</Link>
                           </div>
                         </div>
 
@@ -220,3 +220,4 @@ const Login = () => {
 };
 
 export default Login;
+

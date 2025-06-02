@@ -41,7 +41,6 @@ export const authApi = {
         });
     },
 
-
 };
 
 export const verifyCode = createAsyncThunk(
@@ -60,25 +59,15 @@ export const verifyCode = createAsyncThunk(
     }
 );
 
-
-// Add these async thunks for Redux integration
 export const forgotPassword = createAsyncThunk(
     "user/forgotPassword",
     async (payload, {rejectWithValue}) => {
         try {
-            console.log("Forgot Password", payload);
             const response = await axios.post(FORGOT_PASSWORD_ENDPOINT, payload);
-            if (response.data.success) {
-                return response.data;
-            } else {
-                return rejectWithValue(response.data.message);
-            }
+            return response.data;
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data?.message ||
-                error.message ||
-                "Failed to send reset instructions"
-            );
+            return rejectWithValue(error.response?.data || {message: "Failed to reset password"});
         }
     }
 );
+

@@ -11,6 +11,7 @@ import RestaurantDetails from "./pages/RestaurantDetails.jsx";
 import AddressSelection from "./pages/AddressSelection.jsx";
 import Login from "./pages/login.jsx";
 import Register from "./pages/register.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ErrorPage from "@src/pages/ErrorPage";
 import GlobalResetContext from "@src/context/GlobalResetContext";
 import Cart from "@src/pages/Cart.jsx";
@@ -40,6 +41,7 @@ function App() {
                         <Route path="/Address" element={<><AddressSelection /></>} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/Register" element={<Register />} />
+                        <Route path="/ForgotPassword" element={<ForgotPassword />} />
                         <Route path="/Cart" element={<Cart />} />
                         <Route path="/Account" element={<Account />} />
                         <Route path="/Checkout" element={<Checkout />} />
@@ -59,3 +61,4 @@ function App() {
 }
 
 export default App;
+
