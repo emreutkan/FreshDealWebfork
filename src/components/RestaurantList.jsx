@@ -5,6 +5,7 @@ import { getRestaurantsByProximity } from "@src/redux/thunks/restaurantThunks";
 import { addFavoriteThunk, removeFavoriteThunk, getFavoritesThunk } from "@src/redux/thunks/userThunks";
 import { tokenService } from "@src/services/tokenService.js";
 import CategoryFilter from "./CategoryFilter";
+import { isRestaurantOpen } from "../utils/RestaurantFilters.js";
 
 function RestaurantList() {
     const dispatch = useDispatch();
@@ -12,6 +13,7 @@ function RestaurantList() {
     const loading = useSelector((state) => state.restaurant.restaurantsProximityLoading);
     const favoriteRestaurantsIDs = useSelector((state) => state.restaurant.favoriteRestaurantsIDs || []);
     const [selectedCategory, setSelectedCategory] = useState("All Categories");
+    const [showClosedRestaurants, setShowClosedRestaurants] = useState(false); // Fix: Changed initial state to false to start by showing only open restaurants
 
     useEffect(() => {
         dispatch(getRestaurantsByProximity());
@@ -39,9 +41,38 @@ function RestaurantList() {
         setSelectedCategory(category);
     };
 
-    const filteredRestaurants = selectedCategory === "All Categories"
-        ? restaurants
-        : restaurants.filter(restaurant => restaurant.category === selectedCategory || restaurant.categoryName === selectedCategory);
+    const handleToggleClosedRestaurants = () => {
+        setShowClosedRestaurants(prevState => !prevState); // Fix: Created a dedicated handler for the toggle to ensure proper state changes
+    };
+
+    // Apply filters based on category and whether to show closed restaurants
+    const filteredRestaurants = restaurants
+        ?.filter(restaurant => {
+            // Category filter
+            if (selectedCategory !== "All Categories" &&
+                restaurant.category !== selectedCategory &&
+                restaurant.categoryName !== selectedCategory) {
+                return false;
+            }
+
+            // Open status filter - if showClosedRestaurants is false, only show open restaurants
+            if (!showClosedRestaurants) {
+                const isOpen = isRestaurantOpen(
+                    restaurant.workingDays,
+                    restaurant.workingHoursStart,
+                    restaurant.workingHoursEnd
+                );
+                if (!isOpen) {
+                    return false;
+                }
+            }
+
+            return true;
+        }) || [];
+
+    console.log(`Total restaurants in store: ${restaurants?.length || 0}`);
+    console.log(`Filtered restaurants: ${filteredRestaurants?.length || 0}`);
+    console.log("All restaurants:", restaurants);
 
     if (loading) {
         return (
@@ -69,6 +100,31 @@ function RestaurantList() {
                 onSelectCategory={handleSelectCategory}
             />
 
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <p className="mb-0"><strong>{filteredRestaurants.length}</strong> restaurants found</p>
+
+                {/* Fixed toggle button UI that was overlapping with text */}
+                <div className="d-flex align-items-center">
+                    <div className="form-check form-switch">
+                        <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="showClosedToggle"
+                            checked={showClosedRestaurants}
+                            onChange={handleToggleClosedRestaurants}
+                            style={{ cursor: 'pointer' }}
+                        />
+                    </div>
+                    <label
+                        className="ms-2 user-select-none"
+                        htmlFor="showClosedToggle"
+                        style={{ cursor: 'pointer', marginBottom: '0' }}
+                    >
+                        {showClosedRestaurants ? "Showing closed restaurants" : "Show closed restaurants"}
+                    </label>
+                </div>
+            </div>
+
             {filteredRestaurants.length === 0 ? (
                 <div className="alert alert-info my-4">
                     No restaurants found in the {selectedCategory} category. Try selecting a different category.
@@ -77,10 +133,21 @@ function RestaurantList() {
                 <div className="row">
                     {filteredRestaurants.map((restaurant) => {
                         const isFavorite = favoriteRestaurantsIDs.includes(restaurant.id);
+                        const isOpen = isRestaurantOpen(
+                            restaurant.workingDays,
+                            restaurant.workingHoursStart,
+                            restaurant.workingHoursEnd
+                        );
+                        const hasStock = restaurant.listings > 0;
+                        const isDisabled = !isOpen || !hasStock;
 
                         return (
                             <div className="col-md-4 mb-4" key={restaurant.id}>
-                                <Link to={`/Restaurant/${restaurant.id}`} className="restaurant-card">
+                                <Link
+                                    to={`/Restaurant/${restaurant.id}`}
+                                    className="restaurant-card"
+                                    style={{ pointerEvents: 'auto' }} // Make all restaurants clickable
+                                >
                                     <div className="card h-100">
                                         <div className="card-img-container">
                                             <img
@@ -90,6 +157,12 @@ function RestaurantList() {
                                             />
                                             {restaurant.category && (
                                                 <span className="category-badge">{restaurant.category || restaurant.categoryName}</span>
+                                            )}
+                                            {/* Display closed or out of stock badge */}
+                                            {isDisabled && (
+                                                <span className="status-badge">
+                                                    {!isOpen ? 'Closed' : !hasStock ? 'Out of Stock' : ''}
+                                                </span>
                                             )}
                                             <button
                                                 className="favorite-btn"
@@ -336,6 +409,20 @@ function RestaurantList() {
                     background-color: #f8f9fa;
                     border-radius: 8px;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                }
+
+                .status-badge {
+                    position: absolute;
+                    right: 12px;
+                    bottom: 12px;
+                    background-color: rgba(244, 67, 54, 0.85);
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    color: white;
+                    font-size: 12px;
+                    font-weight: 600;
+                    backdrop-filter: blur(2px);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
             `}</style>
         </div>
