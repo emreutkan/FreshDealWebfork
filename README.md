@@ -40,6 +40,7 @@ FreshDeal is a modern food delivery web application built with React that connec
 
 - Node.js (v16 or higher)
 - npm or yarn
+- Google Maps API Key (required for map functionality)
 
 ## Installation
 
@@ -54,12 +55,18 @@ cd freshdealweb
 npm install
 ```
 
-3. Start the development server
+3. Add a Google Maps API Key
+   Create a `.env` file in the root directory and add your Google Maps API key:
+   ```
+   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
+
+4. Start the development server
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to `http://localhost:5173`
 
 ## Available Scripts
 
