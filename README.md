@@ -4,7 +4,7 @@
 
 ## Live Demo
 
-Visit our live application: [https://lively-bush-0a480ff03.6.azurestaticapps.net/](https://lively-bush-0a480ff03.6.azurestaticapps.net/)
+Visit our live application: [https://delightful-bay-05963e103.6.azurestaticapps.net/](https://delightful-bay-05963e103.6.azurestaticapps.net/)
 
 ## Overview
 
