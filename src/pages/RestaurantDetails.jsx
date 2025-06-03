@@ -443,6 +443,7 @@ const RestaurantDetails = () => {
                                                         {countInCart > 0 ? (
                                                             <div className="cart-controls">
                                                                 <button
+                                                                    type="button"
                                                                     className="cart-btn minus-btn"
                                                                     onClick={() => handleRemoveFromCart(listing)}
                                                                 >
@@ -450,6 +451,7 @@ const RestaurantDetails = () => {
                                                                 </button>
                                                                 <span className="cart-count">{countInCart}</span>
                                                                 <button
+                                                                    type="button"
                                                                     className="cart-btn plus-btn"
                                                                     onClick={() => handleAddToCart(listing)}
                                                                 >
@@ -458,6 +460,7 @@ const RestaurantDetails = () => {
                                                             </div>
                                                         ) : (
                                                             <button
+                                                                type="button"
                                                                 className="add-to-cart-btn"
                                                                 onClick={() => handleAddToCart(listing)}
                                                             >
