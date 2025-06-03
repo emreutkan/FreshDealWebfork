@@ -6,6 +6,7 @@ import { getRestaurantThunk, getListingsThunk, getRestaurantBadgesThunk } from "
 import { addItemToCart, fetchCart, removeItemFromCart, updateCartItem, resetCart } from "@src/redux/thunks/cartThunks.js";
 import { format, addDays } from 'date-fns';
 import PunishmentHistorySection from "../components/PunishmentHistorySection";
+import RestaurantDetailsMap from "../components/RestaurantDetailsMap";
 
 const RestaurantDetails = () => {
     const { id } = useParams();
@@ -660,10 +661,7 @@ const RestaurantDetails = () => {
                                 )}
                             </div>
                             <div className="restaurant-map-container">
-                                <div className="map-placeholder">
-                                    <i className="bi bi-geo-alt-fill"></i>
-                                    <p>Restaurant location map would be displayed here</p>
-                                </div>
+                                <RestaurantDetailsMap restaurant={restaurant} />
                             </div>
                         </div>
                     </div>
@@ -1295,7 +1293,7 @@ const RestaurantDetails = () => {
                     border-top: 1px solid #eee;
                     display: flex;
                     justify-content: space-between;
-                    align-items: center;
+                    align-items: center.
                 }
                 
                 .modal-pricing .current-price {
@@ -1352,13 +1350,13 @@ const RestaurantDetails = () => {
                     justify-content: space-between;
                     align-items: center;
                     padding: 16px 20px;
-                    border-bottom: 1px solid #eee;
+                    border-bottom: 1px solid #eee.
                 }
                 
                 .modal-title {
                     font-size: 24px;
                     font-weight: 600;
-                    margin: 0;
+                    margin: 0.
                 }
                 
                 .close-button {
@@ -1367,36 +1365,36 @@ const RestaurantDetails = () => {
                     border: none;
                     padding: 8px 16px;
                     border-radius: 8px;
-                    cursor: pointer;
+                    cursor: pointer.
                 }
                 
                 .modal-body {
                     padding: 20px;
                     overflow-y: auto;
-                    max-height: calc(85vh - 4rem);
+                    max-height: calc(85vh - 4rem).
                 }
                 
                 .restaurant-details {
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 1.5rem.
                 }
                 
                 .restaurant-description {
                     font-size: 16px;
                     line-height: 1.6;
                     margin-bottom: 16px;
-                    color: #555;
+                    color: #555.
                 }
                 
                 .restaurant-detail-item {
                     margin-bottom: 0.75rem;
-                    font-size: 16px;
+                    font-size: 16px.
                 }
                 
                 .info-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                     gap: 16px;
-                    margin-bottom: 24px;
+                    margin-bottom: 24px.
                 }
                 
                 .info-item {
@@ -1405,25 +1403,25 @@ const RestaurantDetails = () => {
                     gap: 4px;
                     padding: 12px;
                     background-color: #f8f9fa;
-                    border-radius: 8px;
+                    border-radius: 8px.
                 }
                 
                 .info-label {
                     font-weight: 600;
                     color: #666;
-                    font-size: 14px;
+                    font-size: 14px.
                 }
                 
                 .info-value {
                     color: #333;
-                    font-weight: 500;
+                    font-weight: 500.
                 }
                 
                 .restaurant-map-container {
                     height: 300px;
                     background-color: #f5f5f5;
                     border-radius: 8px;
-                    overflow: hidden;
+                    overflow: hidden.
                 }
                 
                 .map-placeholder {
@@ -1432,12 +1430,12 @@ const RestaurantDetails = () => {
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
-                    color: #999;
+                    color: #999.
                 }
                 
                 .map-placeholder i {
                     font-size: 2rem;
-                    margin-bottom: 1rem;
+                    margin-bottom: 1rem.
                 }
                 
                 .directions-btn {
@@ -1448,7 +1446,7 @@ const RestaurantDetails = () => {
                     text-decoration: none;
                     padding: 10px;
                     border-radius: 8px;
-                    margin-top: 16px;
+                    margin-top: 16px.
                 }
                 
                 /* Badge Modal */
@@ -1462,7 +1460,7 @@ const RestaurantDetails = () => {
                     padding: 24px;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
+                    align-items: center.
                 }
                 
                 .badge-icon-large {
@@ -1472,11 +1470,11 @@ const RestaurantDetails = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-bottom: 16px;
+                    margin-bottom: 16px.
                 }
                 
                 .badge-icon-large i {
-                    font-size: 24px;
+                    font-size: 24px.
                 }
                 
                 .badge-modal-title {
@@ -1484,7 +1482,7 @@ const RestaurantDetails = () => {
                     font-weight: 700;
                     margin-bottom: 12px;
                     text-align: center;
-                    color: #333;
+                    color: #333.
                 }
                 
                 .badge-modal-description {
@@ -1492,7 +1490,7 @@ const RestaurantDetails = () => {
                     text-align: center;
                     margin-bottom: 20px;
                     color: #666;
-                    line-height: 1.6;
+                    line-height: 1.6.
                 }
                 
                 .close-button-small {
@@ -1502,19 +1500,19 @@ const RestaurantDetails = () => {
                     color: white;
                     cursor: pointer;
                     font-weight: 600;
-                    font-size: 16px;
+                    font-size: 16px.
                 }
                 
                 /* Listing Details Modal */
                 .listing-image-modal {
                     height: 300px;
-                    width: 100%;
+                    width: 100%.
                 }
                 
                 .listing-image-modal img {
                     width: 100%;
                     height: 100%;
-                    object-fit: cover;
+                    object-fit: cover.
                 }
                 
                 .fresh-score-badge-large {
@@ -1527,7 +1525,7 @@ const RestaurantDetails = () => {
                     font-weight: 600;
                     margin-bottom: 16px;
                     border-width: 1px;
-                    border-style: solid;
+                    border-style: solid.
                 }
                 
                 .consume-within-box {
@@ -1538,25 +1536,25 @@ const RestaurantDetails = () => {
                     border-radius: 12px;
                     margin-bottom: 20px;
                     color: #DC2626;
-                    align-items: center;
+                    align-items: center.
                 }
                 
                 .consume-within-box i {
-                    font-size: 24px;
+                    font-size: 24px.
                 }
                 
                 .consume-info {
                     display: flex;
-                    flex-direction: column;
+                    flex-direction: column.
                 }
                 
                 .consume-text {
                     font-weight: 600;
-                    font-size: 16px;
+                    font-size: 16px.
                 }
                 
                 .expiry-date {
-                    font-size: 14px;
+                    font-size: 14px.
                 }
                 
                 .listing-price-section {
@@ -1564,7 +1562,7 @@ const RestaurantDetails = () => {
                     align-items: center;
                     gap: 12px;
                     margin-bottom: 20px;
-                    flex-wrap: wrap;
+                    flex-wrap: wrap.
                 }
                 
                 .savings-badge {
@@ -1573,19 +1571,19 @@ const RestaurantDetails = () => {
                     color: #059669;
                     font-weight: 600;
                     border-radius: 8px;
-                    border: 1px solid #059669;
+                    border: 1px solid #059669.
                 }
                 
                 .original-price-large {
                     font-size: 18px;
                     text-decoration: line-through;
-                    color: #999;
+                    color: #999.
                 }
                 
                 .current-price-large {
                     font-size: 28px;
                     font-weight: 700;
-                    color: #059669;
+                    color: #059669.
                 }
                 
                 .cart-controls-large {
@@ -1594,7 +1592,7 @@ const RestaurantDetails = () => {
                     justify-content: center;
                     background-color: #f8f8f8;
                     border-radius: 12px;
-                    padding: 4px;
+                    padding: 4px.
                 }
                 
                 .cart-btn-large {
@@ -1607,7 +1605,7 @@ const RestaurantDetails = () => {
                     align-items: center;
                     justify-content: center;
                     font-size: 20px;
-                    cursor: pointer;
+                    cursor: pointer.
                 }
                 
                 .cart-count-large {
@@ -1616,7 +1614,7 @@ const RestaurantDetails = () => {
                     color: #333;
                     margin: 0 16px;
                     min-width: 30px;
-                    text-align: center;
+                    text-align: center.
                 }
                 
                 .add-to-cart-btn-large {
@@ -1631,43 +1629,43 @@ const RestaurantDetails = () => {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    cursor: pointer;
+                    cursor: pointer.
                 }
                 
                 @media (max-width: 768px) {
                     .restaurant-title {
-                        font-size: 24px;
+                        font-size: 24px.
                     }
                     
                     .comments-button {
                         margin-top: 8px;
                         width: 100%;
-                        justify-content: center;
+                        justify-content: center.
                     }
                     
                     .badge-item {
-                        width: 60px;
+                        width: 60px.
                     }
                     
                     .badges-section {
-                        flex-direction: column;
+                        flex-direction: column.
                     }
                     
                     .badges-row, .delivery-toggle {
-                        width: 100%;
+                        width: 100%.
                     }
                     
                     .delivery-toggle {
                         margin-top: 16px;
-                        justify-content: flex-start;
+                        justify-content: flex-start.
                     }
                     
                     .menu-item-image-container {
-                        height: 150px;
+                        height: 150px.
                     }
                     
                     .restaurant-meta-info {
-                        flex-wrap: wrap;
+                        flex-wrap: wrap.
                     }
                 }
             `}</style>
