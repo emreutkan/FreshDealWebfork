@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -511,7 +511,8 @@ const RestaurantDetails = () => {
 
             {/* Listing Detail Modal */}
             {selectedListing && (
-                <div className="modal-backdrop show">
+                <>
+                    <div className="modal-backdrop show listing-detail-modal-backdrop" onClick={handleCloseModal} />
                     <div className="listing-detail-modal">
                         <div className="listing-modal-header">
                             <h3>{selectedListing.title}</h3>
@@ -559,14 +560,16 @@ const RestaurantDetails = () => {
                                     <div className="attribute-item">
                                         <span className="attribute-label">Best Before:</span>
                                         <span className="attribute-value">
-                                            {selectedListing.expiry_days && !isNaN(selectedListing.expiry_days) ?
-                                                format(addDays(new Date(), Number(selectedListing.expiry_days)), 'PP') :
-                                                'Not specified'}
+                                            {(() => {
+                                                if (selectedListing.expires_at) {
+                                                    const date = new Date(selectedListing.expires_at);
+                                                    if (!isNaN(date.getTime())) {
+                                                        return format(date, 'PP');
+                                                    }
+                                                }
+                                                return 'Not specified';
+                                            })()}
                                         </span>
-                                    </div>
-                                    <div className="attribute-item">
-                                        <span className="attribute-label">Category:</span>
-                                        <span className="attribute-value">{selectedListing.category || 'Uncategorized'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -624,7 +627,7 @@ const RestaurantDetails = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </>
             )}
 
             {/* Restaurant Info Modal */}
@@ -1196,15 +1199,28 @@ const RestaurantDetails = () => {
                     justify-content: center;
                 }
                 
+                .listing-detail-modal-backdrop { /* Specific for listing detail modal */
+                    background-color: rgba(0, 0, 0, 0.6); /* Darker */
+                    backdrop-filter: blur(4px);
+                    -webkit-backdrop-filter: blur(4px); /* For Safari */
+                    z-index: 1045; /* Ensures it's above general backdrop, below modal content */
+                }
+                
                 .listing-detail-modal {
                     width: 90%;
                     max-width: 700px;
                     max-height: 90vh;
-                    background-color: white;
+                    background-color: #FFFFFF; /* Solid white background */
+                    opacity: 1;                /* Ensure full opacity */
                     border-radius: 16px;
-                    overflow: hidden;
+                    overflow: hidden; 
                     display: flex;
                     flex-direction: column;
+                    position: fixed; /* Changed for centering */
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 1050; /* Above its own backdrop */
                 }
                 
                 .listing-modal-header {
@@ -1233,6 +1249,15 @@ const RestaurantDetails = () => {
                     padding: 16px 20px;
                     flex: 1;
                     overflow-y: auto;
+                    position: relative;
+                }
+
+                .listing-modal-body .fresh-score-badge.detail-badge {
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    margin-right: 0;
+                    z-index: 10;
                 }
                 
                 .listing-image-container {
@@ -1240,6 +1265,7 @@ const RestaurantDetails = () => {
                     background-color: #f0f0f0;
                     border-radius: 8px;
                     overflow: hidden;
+                    margin-bottom: 16px;
                 }
                 
                 .listing-detail-image {
@@ -1249,7 +1275,9 @@ const RestaurantDetails = () => {
                 }
                 
                 .listing-detail-info {
-                    margin-top: 16px;
+                }
+
+                .listing-detail-info > .mb-3 { 
                 }
                 
                 .detail-badge {
@@ -1279,7 +1307,7 @@ const RestaurantDetails = () => {
                 
                 .attribute-item {
                     display: flex;
-                    margin-bottom: 5px;
+                    margin-bottom: 8px;
                 }
                 
                 .attribute-label {
@@ -1293,7 +1321,7 @@ const RestaurantDetails = () => {
                     border-top: 1px solid #eee;
                     display: flex;
                     justify-content: space-between;
-                    align-items: center.
+                    align-items: center;
                 }
                 
                 .modal-pricing .current-price {
@@ -1321,7 +1349,6 @@ const RestaurantDetails = () => {
                     background-color: #047857;
                 }
                 
-                /* New modal styles */
                 .custom-modal {
                     position: fixed;
                     top: 0;
@@ -1334,67 +1361,79 @@ const RestaurantDetails = () => {
                     z-index: 1050;
                 }
                 
-                .modal-content {
+                .custom-modal .modal-backdrop {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 1050;
+                }
+
+                .custom-modal .modal-content {
                     width: 90%;
                     max-width: 600px;
-                    max-height: 85%;
+                    max-height: 85vh;
                     background-color: white;
                     border-radius: 16px;
                     overflow: hidden;
                     position: relative;
                     z-index: 1051;
+                    display: flex;
+                    flex-direction: column;
                 }
                 
-                .modal-header {
+                .custom-modal .modal-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     padding: 16px 20px;
-                    border-bottom: 1px solid #eee.
+                    border-bottom: 1px solid #eee;
                 }
                 
-                .modal-title {
-                    font-size: 24px;
+                .custom-modal .modal-title {
+                    font-size: 20px;
                     font-weight: 600;
-                    margin: 0.
+                    margin: 0;
                 }
                 
-                .close-button {
-                    background-color: #333;
-                    color: white;
+                .custom-modal .close-button {
+                    background-color: #f0f0f0;
+                    color: #333;
                     border: none;
                     padding: 8px 16px;
                     border-radius: 8px;
-                    cursor: pointer.
+                    cursor: pointer;
                 }
                 
-                .modal-body {
+                .custom-modal .modal-body {
                     padding: 20px;
                     overflow-y: auto;
-                    max-height: calc(85vh - 4rem).
+                    flex-grow: 1;
                 }
                 
                 .restaurant-details {
-                    margin-bottom: 1.5rem.
+                    margin-bottom: 1.5rem;
                 }
                 
                 .restaurant-description {
                     font-size: 16px;
                     line-height: 1.6;
                     margin-bottom: 16px;
-                    color: #555.
+                    color: #555;
                 }
                 
                 .restaurant-detail-item {
                     margin-bottom: 0.75rem;
-                    font-size: 16px.
+                    font-size: 16px;
                 }
                 
                 .info-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                     gap: 16px;
-                    margin-bottom: 24px.
+                    margin-bottom: 24px;
                 }
                 
                 .info-item {
@@ -1403,25 +1442,25 @@ const RestaurantDetails = () => {
                     gap: 4px;
                     padding: 12px;
                     background-color: #f8f9fa;
-                    border-radius: 8px.
+                    border-radius: 8px;
                 }
                 
                 .info-label {
                     font-weight: 600;
                     color: #666;
-                    font-size: 14px.
+                    font-size: 14px;
                 }
                 
                 .info-value {
                     color: #333;
-                    font-weight: 500.
+                    font-weight: 500;
                 }
                 
                 .restaurant-map-container {
                     height: 300px;
                     background-color: #f5f5f5;
                     border-radius: 8px;
-                    overflow: hidden.
+                    overflow: hidden;
                 }
                 
                 .map-placeholder {
@@ -1430,12 +1469,12 @@ const RestaurantDetails = () => {
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
-                    color: #999.
+                    color: #999;
                 }
                 
                 .map-placeholder i {
                     font-size: 2rem;
-                    margin-bottom: 1rem.
+                    margin-bottom: 1rem;
                 }
                 
                 .directions-btn {
@@ -1446,23 +1485,16 @@ const RestaurantDetails = () => {
                     text-decoration: none;
                     padding: 10px;
                     border-radius: 8px;
-                    margin-top: 16px.
+                    margin-top: 16px;
                 }
                 
-                /* Badge Modal */
-                .badge-modal-content {
-                    width: 300px;
-                    background-color: white;
-                    border-radius: 16px;
-                    overflow: hidden;
-                    position: relative;
-                    z-index: 1051;
-                    padding: 24px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center.
+                .badge-modal .modal-content {
+                     width: 320px;
+                     max-width: 90%;
+                     padding: 24px;
+                     align-items: center;
                 }
-                
+
                 .badge-icon-large {
                     width: 80px;
                     height: 80px;
@@ -1470,27 +1502,27 @@ const RestaurantDetails = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    margin-bottom: 16px.
+                    margin-bottom: 16px;
                 }
                 
                 .badge-icon-large i {
-                    font-size: 24px.
+                    font-size: 32px;
                 }
                 
                 .badge-modal-title {
-                    font-size: 24px;
+                    font-size: 22px;
                     font-weight: 700;
                     margin-bottom: 12px;
                     text-align: center;
-                    color: #333.
+                    color: #333;
                 }
                 
                 .badge-modal-description {
-                    font-size: 16px;
+                    font-size: 15px;
                     text-align: center;
                     margin-bottom: 20px;
                     color: #666;
-                    line-height: 1.6.
+                    line-height: 1.6;
                 }
                 
                 .close-button-small {
@@ -1500,19 +1532,18 @@ const RestaurantDetails = () => {
                     color: white;
                     cursor: pointer;
                     font-weight: 600;
-                    font-size: 16px.
+                    font-size: 16px;
                 }
                 
-                /* Listing Details Modal */
                 .listing-image-modal {
                     height: 300px;
-                    width: 100%.
+                    width: 100%;
                 }
                 
                 .listing-image-modal img {
                     width: 100%;
                     height: 100%;
-                    object-fit: cover.
+                    object-fit: cover;
                 }
                 
                 .fresh-score-badge-large {
@@ -1525,7 +1556,7 @@ const RestaurantDetails = () => {
                     font-weight: 600;
                     margin-bottom: 16px;
                     border-width: 1px;
-                    border-style: solid.
+                    border-style: solid;
                 }
                 
                 .consume-within-box {
@@ -1536,25 +1567,25 @@ const RestaurantDetails = () => {
                     border-radius: 12px;
                     margin-bottom: 20px;
                     color: #DC2626;
-                    align-items: center.
+                    align-items: center;
                 }
                 
                 .consume-within-box i {
-                    font-size: 24px.
+                    font-size: 24px;
                 }
                 
                 .consume-info {
                     display: flex;
-                    flex-direction: column.
+                    flex-direction: column;
                 }
                 
                 .consume-text {
                     font-weight: 600;
-                    font-size: 16px.
+                    font-size: 16px;
                 }
                 
                 .expiry-date {
-                    font-size: 14px.
+                    font-size: 14px;
                 }
                 
                 .listing-price-section {
@@ -1562,7 +1593,7 @@ const RestaurantDetails = () => {
                     align-items: center;
                     gap: 12px;
                     margin-bottom: 20px;
-                    flex-wrap: wrap.
+                    flex-wrap: wrap;
                 }
                 
                 .savings-badge {
@@ -1571,19 +1602,19 @@ const RestaurantDetails = () => {
                     color: #059669;
                     font-weight: 600;
                     border-radius: 8px;
-                    border: 1px solid #059669.
+                    border: 1px solid #059669;
                 }
                 
                 .original-price-large {
                     font-size: 18px;
                     text-decoration: line-through;
-                    color: #999.
+                    color: #999;
                 }
                 
                 .current-price-large {
                     font-size: 28px;
                     font-weight: 700;
-                    color: #059669.
+                    color: #059669;
                 }
                 
                 .cart-controls-large {
@@ -1592,7 +1623,7 @@ const RestaurantDetails = () => {
                     justify-content: center;
                     background-color: #f8f8f8;
                     border-radius: 12px;
-                    padding: 4px.
+                    padding: 4px;
                 }
                 
                 .cart-btn-large {
@@ -1605,7 +1636,7 @@ const RestaurantDetails = () => {
                     align-items: center;
                     justify-content: center;
                     font-size: 20px;
-                    cursor: pointer.
+                    cursor: pointer;
                 }
                 
                 .cart-count-large {
@@ -1614,7 +1645,7 @@ const RestaurantDetails = () => {
                     color: #333;
                     margin: 0 16px;
                     min-width: 30px;
-                    text-align: center.
+                    text-align: center;
                 }
                 
                 .add-to-cart-btn-large {
@@ -1629,43 +1660,43 @@ const RestaurantDetails = () => {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    cursor: pointer.
+                    cursor: pointer;
                 }
-                
+                                
                 @media (max-width: 768px) {
                     .restaurant-title {
-                        font-size: 24px.
+                        font-size: 24px;
                     }
                     
                     .comments-button {
                         margin-top: 8px;
                         width: 100%;
-                        justify-content: center.
+                        justify-content: center;
                     }
                     
                     .badge-item {
-                        width: 60px.
+                        width: 60px;
                     }
                     
                     .badges-section {
-                        flex-direction: column.
+                        flex-direction: column;
                     }
                     
                     .badges-row, .delivery-toggle {
-                        width: 100%.
+                        width: 100%;
                     }
                     
                     .delivery-toggle {
                         margin-top: 16px;
-                        justify-content: flex-start.
+                        justify-content: flex-start;
                     }
                     
                     .menu-item-image-container {
-                        height: 150px.
+                        height: 150px;
                     }
                     
                     .restaurant-meta-info {
-                        flex-wrap: wrap.
+                        flex-wrap: wrap;
                     }
                 }
             `}</style>
