@@ -186,17 +186,10 @@ const Cart = () => {
                                                     alt={listing.title}
                                                 />
                                                 <div
-                                                    className="fresh-score-badge"
-                                                    style={{
-                                                        backgroundColor: `${getFreshScoreColor(listing.fresh_score)}20`,
-                                                        borderColor: getFreshScoreColor(listing.fresh_score)
-                                                    }}
+                                                    className={`fresh-score-badge ${listing.fresh_score >= 80 ? 'high-score' : listing.fresh_score >= 50 ? 'medium-score' : 'low-score'}`}
                                                 >
-                                                    <i
-                                                        className="bi bi-leaf"
-                                                        style={{color: getFreshScoreColor(listing.fresh_score)}}
-                                                    ></i>
-                                                    <span style={{color: getFreshScoreColor(listing.fresh_score)}}>
+                                                    <i className="bi bi-leaf"></i>
+                                                    <span>
                                                         {Math.round(listing.fresh_score)}% Fresh
                                                     </span>
                                                 </div>
@@ -372,9 +365,11 @@ const Cart = () => {
                     width: 180px;
                     height: 180px;
                     position: relative;
+                    overflow: hidden; /* Ensures badge doesn't overflow and image is clipped */
                 }
                 
                 .cart-item-image img {
+                    display: block; /* Helps with consistent rendering and object-fit behavior */
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
@@ -387,13 +382,33 @@ const Cart = () => {
                     display: flex;
                     align-items: center;
                     gap: 4px;
-                    padding: 4px 8px;
+                    padding: 5px 10px;
                     border-radius: 8px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    border-width: 1px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    border-width: 1.5px;
                     border-style: solid;
-                    background-color: white;
+                    color: #fff;
+                }
+
+                .fresh-score-badge.high-score {
+                    background-color: #059669;
+                    border-color: #047857;
+                    color: #fff;
+                }
+                .fresh-score-badge.medium-score {
+                    background-color: #F59E0B;
+                    border-color: #D97706;
+                    color: #fff;
+                }
+                .fresh-score-badge.low-score {
+                    background-color: #DC2626;
+                    border-color: #B91C1C;
+                    color: #fff;
+                }
+
+                .fresh-score-badge i {
+                    color: inherit; 
                 }
                 
                 .cart-item-details {
