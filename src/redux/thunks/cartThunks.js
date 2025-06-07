@@ -1,46 +1,19 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
 import {addToCartAPI, getUsersCartItemsAPI, removeFromCart, resetCartAPI, updateCartAPI} from "@src/redux/api/cartAPI";
 import {tokenService} from "@src/services/tokenService.js";
-import {setSelectedRestaurant} from "@src/redux/slices/restaurantSlice.js";
-import {getListingsThunk, getRestaurantThunk} from "@src/redux/thunks/restaurantThunks.js";
 
 /**
  * Thunk to fetch the user's cart items.
  */
 export const fetchCart = createAsyncThunk(
     "cart/fetchCart",
-    async (_, {dispatch, getState, rejectWithValue}) => {
+    async (_, {rejectWithValue}) => {
         const token = await tokenService.getToken();
         if (!token) {
             return rejectWithValue("Authentication token is missing.");
         }
         try {
             const cartItems = await getUsersCartItemsAPI(token);
-
-            // Set selected restaurant if cart has items
-            if (cartItems && cartItems.length > 0) {
-                const restaurantId = cartItems[0].restaurant_id;
-                const state = getState();
-                const restaurantsProximity = state.restaurant.restaurantsProximity;
-
-                // Find restaurant in proximity list
-                const restaurant = restaurantsProximity.find(r => r.id === restaurantId);
-                if (restaurant) {
-                    // Set selected restaurant and fetch its details
-                    dispatch(setSelectedRestaurant(restaurant));
-                    dispatch(getRestaurantThunk(restaurant.id));
-
-                    // Check if we already have listings for this restaurant in Redux state
-                    const currentListingsRestaurantId = state.listings?.currentRestaurantId;
-                    const hasListings = state.listings?.items?.length > 0;
-
-                    // Only fetch listings if they don't already belong to the selected restaurant
-                    if (!hasListings || currentListingsRestaurantId !== restaurantId) {
-                        dispatch(getListingsThunk({ restaurantId }));
-                    }
-                }
-            }
-
             return cartItems;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || error.message);

@@ -3,15 +3,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchCart, resetCart, removeItemFromCart, updateCartItem } from '@src/redux/thunks/cartThunks.js';
 import { setDeliveryMethod, setSelectedRestaurant } from '@src/redux/slices/restaurantSlice.js';
-import { getRestaurantThunk } from '@src/redux/thunks/restaurantThunks.js';
+import { getRestaurantThunk, getListingsThunk } from '@src/redux/thunks/restaurantThunks.js';
 
 const Cart = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { cartItems, restaurantsProximity, selectedRestaurantListings, isPickup } = useSelector((state) => ({
+    const { cartItems, restaurantsProximity, selectedRestaurant, selectedRestaurantListings, isPickup } = useSelector((state) => ({
         cartItems: state.cart.cartItems,
         restaurantsProximity: state.restaurant.restaurantsProximity,
+        selectedRestaurant: state.restaurant.selectedRestaurant,
         selectedRestaurantListings: state.restaurant.selectedRestaurantListings,
         isPickup: state.restaurant.isPickup
     }));
@@ -22,25 +23,42 @@ const Cart = () => {
 
     useEffect(() => {
         if (cartItems.length > 0) {
-            const firstCartItem = cartItems[0];
-            const restaurantId = firstCartItem.restaurant_id;
+            const restaurantIdInCart = cartItems[0].restaurant_id;
 
-            const restaurant = restaurantsProximity.find(r => r.id === restaurantId);
+            if (!selectedRestaurant || selectedRestaurant.id !== restaurantIdInCart || selectedRestaurant.id === 0) {
+                const restaurantFromProximity = restaurantsProximity.find(r => r.id === restaurantIdInCart);
 
-            if (restaurant) {
-                dispatch(setSelectedRestaurant(restaurant));
-                dispatch(getRestaurantThunk(restaurant.id));
-                if (restaurant.delivery && !restaurant.pickup) {
-                    dispatch(setDeliveryMethod(false));
-                } else if (!restaurant.delivery && restaurant.pickup) {
-                    dispatch(setDeliveryMethod(true));
+                if (restaurantFromProximity) {
+                    dispatch(setSelectedRestaurant(restaurantFromProximity));
+                    dispatch(getRestaurantThunk(restaurantIdInCart)).then(action => {
+                        if (getRestaurantThunk.rejected.match(action) || (getRestaurantThunk.fulfilled.match(action) && !action.payload)) {
+                            alert('Failed to load details for the cart\'s restaurant. Cart will be cleared.');
+                            dispatch(resetCart());
+                        }
+                    });
+                } else {
+                    dispatch(getRestaurantThunk(restaurantIdInCart)).then(action => {
+                        if (getRestaurantThunk.rejected.match(action) || (getRestaurantThunk.fulfilled.match(action) && !action.payload)) {
+                            alert('Restaurant for cart items not found. Cart will be cleared.');
+                            dispatch(resetCart());
+                        }
+                    });
                 }
-            } else {
-                alert('Restaurant not found. The restaurant is not in proximity. Cart will be cleared.');
-                dispatch(resetCart());
             }
         }
-    }, [cartItems, restaurantsProximity, dispatch]);
+    }, [cartItems, restaurantsProximity, selectedRestaurant, dispatch]);
+
+    useEffect(() => {
+        if (cartItems.length > 0 && selectedRestaurant && selectedRestaurant.id === cartItems[0].restaurant_id && selectedRestaurant.id !== 0) {
+            dispatch(getListingsThunk({ restaurantId: selectedRestaurant.id, page: 1, perPage: 10 }));
+
+            if (selectedRestaurant.delivery && !selectedRestaurant.pickup) {
+                dispatch(setDeliveryMethod(false));
+            } else if (!selectedRestaurant.delivery && selectedRestaurant.pickup) {
+                dispatch(setDeliveryMethod(true));
+            }
+        }
+    }, [cartItems, selectedRestaurant, dispatch]);
 
     const ListingsInCart = selectedRestaurantListings.filter(listing =>
         cartItems.some(cartItem => cartItem.listing_id === listing.id)
