@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getFavoritesThunk } from "@src/redux/thunks/userThunks";
 import { Link } from "react-router-dom";
 import { isRestaurantOpen } from "@src/utils/RestaurantFilters.js";
+import { useRestaurantFilter } from "@src/context/RestaurantFilterContext"; // Import the context hook
 
 const CARD_WIDTH = 200;
 const CARD_MARGIN = 16;
@@ -10,6 +10,7 @@ const CARD_HEIGHT = 140;
 
 const FavoriteRestaurantList = () => {
     const dispatch = useDispatch();
+    const { showClosedRestaurants } = useRestaurantFilter(); // Use the global state
     const { favoriteRestaurantsIDs, restaurantsProximity } = useSelector((state) => state.restaurant);
     const scrollRef = useRef(null);
 
@@ -20,6 +21,13 @@ const FavoriteRestaurantList = () => {
     useEffect(() => {
         console.log("FavoriteRestaurants - Initial State:", favoriteRestaurantsIDs);
     }, [dispatch, favoriteRestaurantsIDs]);
+
+    // Filter restaurants based on the global showClosedRestaurants state
+    const filteredFavoriteRestaurants = showClosedRestaurants
+        ? favoriteRestaurants
+        : favoriteRestaurants.filter(restaurant =>
+            isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd) && restaurant.listings > 0
+          );
 
     const styles = {
         container: {
@@ -192,7 +200,7 @@ const FavoriteRestaurantList = () => {
         );
     }
 
-    if (favoriteRestaurants.length === 0) {
+    if (filteredFavoriteRestaurants.length === 0 && !showClosedRestaurants) { // Adjusted empty state condition
         return (
             <div style={styles.container}>
                 <div style={styles.header}>
@@ -202,7 +210,7 @@ const FavoriteRestaurantList = () => {
                     </div>
                 </div>
                 <div style={styles.emptyStateContainer}>
-                    <p>You haven't added any favorite restaurants yet.</p>
+                    <p>You haven't added any favorite restaurants yet, or all your favorites are currently closed/out of stock.</p>
                     <Link to="/" className="btn btn-success">Explore Restaurants</Link>
                 </div>
             </div>
@@ -219,7 +227,7 @@ const FavoriteRestaurantList = () => {
             </div>
 
             <div style={styles.carousel} ref={scrollRef}>
-                {favoriteRestaurants.map((restaurant) => {
+                {filteredFavoriteRestaurants.map((restaurant) => { // Use filtered list
                     const isOpen = isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd);
                     const hasStock = restaurant.listings > 0;
 

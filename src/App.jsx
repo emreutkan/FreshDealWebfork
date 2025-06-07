@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router";
 import Header from '@src/components/Header';
@@ -6,8 +6,6 @@ import Footer from "@src/components/Footer";
 import Home from "./pages/Home";
 
 import RestaurantDetails from "./pages/RestaurantDetails.jsx";
-
-
 import AddressSelection from "./pages/AddressSelection.jsx";
 import Login from "./pages/login.jsx";
 import Register from "./pages/register.jsx";
@@ -24,6 +22,7 @@ import Achievements from "@src/pages/Achievements.jsx";
 import Rankings from "@src/pages/Rankings.jsx";
 import Favorites from "@src/pages/Favorites.jsx";
 import RestaurantComments from "@src/pages/RestaurantComments.jsx";
+import { RestaurantFilterProvider } from "./context/RestaurantFilterContext";
 
 function App() {
     const { resetKey } = useContext(GlobalResetContext);
@@ -31,7 +30,8 @@ function App() {
     return (
         <div>
             <Router>
-                <Header />
+                <RestaurantFilterProvider>
+                    <Header />
 
                     <Routes key={resetKey}>
                         <Route path="/" element={<Home />} />
@@ -55,7 +55,8 @@ function App() {
                         <Route path="*" element={<ErrorPage />} />
                     </Routes>
 
-                <Footer />
+                    <Footer />
+                </RestaurantFilterProvider>
             </Router>
         </div>
     )

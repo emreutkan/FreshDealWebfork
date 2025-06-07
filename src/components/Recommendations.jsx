@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getRecommendationsThunk } from "@src/redux/thunks/recommendationThunks.js";
 import { isRestaurantOpen } from "@src/utils/RestaurantFilters.js";
+import { useRestaurantFilter } from "@src/context/RestaurantFilterContext"; // Import the context hook
 
 // Define consistent card sizing (similar to mobile)
 const CARD_WIDTH = 200;
@@ -12,6 +13,7 @@ const CARD_HEIGHT = 140;
 const Recommendations = () => {
     const dispatch = useDispatch();
     const scrollRef = useRef(null);
+    const { showClosedRestaurants } = useRestaurantFilter(); // Use the global state
 
     const { recommendationIds, loading, error, status } = useSelector(
         (state) => state.recommendation
@@ -22,15 +24,21 @@ const Recommendations = () => {
     );
 
     // Find restaurants in proximity data that match recommendation IDs
-    const recommendedRestaurants = restaurantsProximity.filter(restaurant =>
+    const recommendedRestaurantsFromProximity = restaurantsProximity.filter(restaurant =>
         recommendationIds.includes(restaurant.id)
     );
+
+    // Filter based on the global showClosedRestaurants state
+    const filteredRecommendedRestaurants = showClosedRestaurants
+        ? recommendedRestaurantsFromProximity
+        : recommendedRestaurantsFromProximity.filter(restaurant =>
+            isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd) && restaurant.listings > 0
+          );
 
     // Fetch recommendations when component mounts
     useEffect(() => {
         dispatch(getRecommendationsThunk());
     }, [dispatch]);
-
 
     // Styles
     const styles = {
@@ -212,8 +220,8 @@ const Recommendations = () => {
         );
     }
 
-    // Don't show anything if there are no recommendations
-    if (error || status === 'failed' || !recommendedRestaurants || recommendedRestaurants.length === 0) {
+    // Don't show anything if there are no recommendations or if the filtered list is empty
+    if (error || status === 'failed' || !filteredRecommendedRestaurants || filteredRecommendedRestaurants.length === 0) {
         return null;
     }
 
@@ -224,11 +232,10 @@ const Recommendations = () => {
                     <i className="bi bi-star-fill" style={styles.headerIcon}></i>
                     <h3 style={styles.headerTitle}>Recommended For You</h3>
                 </div>
-
             </div>
 
             <div style={styles.carousel} ref={scrollRef}>
-                {recommendedRestaurants.map((restaurant) => {
+                {filteredRecommendedRestaurants.map((restaurant) => { // Use filtered list
                     const isOpen = isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd);
                     const hasStock = restaurant.listings > 0;
 

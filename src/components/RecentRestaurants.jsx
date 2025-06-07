@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getRecentRestaurantsThunk } from "../redux/thunks/restaurantThunks";
+import { getRecentRestaurantsThunk } from "@src/redux/thunks/restaurantThunks";
 import { isRestaurantOpen } from "../utils/RestaurantFilters.js";
 import { Link } from "react-router-dom";
+import { useRestaurantFilter } from "@src/context/RestaurantFilterContext"; // Import the context hook
 
 // Define consistent card sizing (similar to mobile)
 const CARD_WIDTH = 200;
@@ -12,6 +13,7 @@ const CARD_HEIGHT = 140;
 const RecentRestaurants = () => {
     const dispatch = useDispatch();
     const scrollRef = useRef(null);
+    const { showClosedRestaurants } = useRestaurantFilter(); // Use the global state
 
     const { recentRestaurantIDs, recentRestaurantsLoading, restaurantsProximity } = useSelector(
         (state) => state.restaurant
@@ -19,11 +21,18 @@ const RecentRestaurants = () => {
 
     useEffect(() => {
         dispatch(getRecentRestaurantsThunk());
-    }, [dispatch]);
+    }, [dispatch]); // Added missing useEffect to fetch recent restaurants
 
-    const recentRestaurants = restaurantsProximity.filter(restaurant =>
+    const recentRestaurantsFromProximity = restaurantsProximity.filter(restaurant =>
         recentRestaurantIDs.includes(restaurant.id)
     );
+
+    // Filter based on the global showClosedRestaurants state
+    const filteredRecentRestaurants = showClosedRestaurants
+        ? recentRestaurantsFromProximity
+        : recentRestaurantsFromProximity.filter(restaurant =>
+            isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd) && restaurant.listings > 0
+          );
 
     // Styles
     const styles = {
@@ -169,10 +178,15 @@ const RecentRestaurants = () => {
             zIndex: 2,
             borderRadius: '12px',
         },
+        emptyStateContainer: {
+            padding: '20px',
+            textAlign: 'center',
+            color: '#6B7280',
+        },
     };
 
-    // Don't show anything if we're still loading
-    if (recentRestaurantsLoading || !recentRestaurants || recentRestaurants.length === 0) {
+    // Don't show anything if we're still loading or if the filtered list is empty (when not showing closed)
+    if (recentRestaurantsLoading) {
         return (
             <div style={styles.container}>
                 <div style={styles.header}>
@@ -191,6 +205,23 @@ const RecentRestaurants = () => {
         );
     }
 
+    if (!filteredRecentRestaurants || filteredRecentRestaurants.length === 0) {
+        // If not loading but list is empty
+        return (
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <div style={styles.headerLeft}>
+                        <i className="bi bi-clock-history" style={styles.headerIcon}></i>
+                        <h3 style={styles.headerTitle}>Recent Orders</h3>
+                    </div>
+                </div>
+                <div style={styles.emptyStateContainer}>
+                    <p>No recent orders to show. {showClosedRestaurants ? "" : "Try enabling \"Show closed restaurants\"."}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={styles.container}>
             <div style={styles.header}>
@@ -201,7 +232,7 @@ const RecentRestaurants = () => {
             </div>
 
             <div style={styles.carousel} ref={scrollRef}>
-                {recentRestaurants.map((restaurant) => {
+                {filteredRecentRestaurants.map((restaurant) => { // Use filtered list
                     const isOpen = isRestaurantOpen(restaurant.workingDays, restaurant.workingHoursStart, restaurant.workingHoursEnd);
                     const hasStock = restaurant.listings > 0;
 

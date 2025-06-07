@@ -52,10 +52,7 @@ const Header = () => {
     const handleLogout = async () => {
         try {
             await dispatch(logoutUserThunk()).unwrap();
-            // Force navigation to home page
             navigate('/');
-            // Force reload of the page to ensure all state is completely reset
-            // This is a fallback in case the Redux state isn't fully cleaned up
             setTimeout(() => {
                 window.location.reload();
             }, 100);

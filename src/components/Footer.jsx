@@ -36,7 +36,7 @@ function Footer() {
                             <ul className="footer-links">
                                 <li><Link to="/">Home</Link></li>
                                 <li><Link to="/about">About Us</Link></li>
-                                <li><Link to="/contact">Contact</Link></li>
+                                {/* Removed Contact Link */}
                             </ul>
                         </div>
                     </div>
@@ -44,8 +44,8 @@ function Footer() {
                         <div className="footer-widget">
                             <h4 className="footer-widget-title">For Restaurants</h4>
                             <ul className="footer-links">
-                                <li><Link to="/partner">Partner with Us</Link></li>
-                                <li><Link to="/restaurant-faq">Restaurant FAQ</Link></li>
+                                <li><a href="https://lively-bush-0a480ff03.6.azurestaticapps.net/" target="_blank" rel="noopener noreferrer">Partner with Us</a></li>
+                                {/* Removed Restaurant FAQ Link */}
                             </ul>
                         </div>
                     </div>
@@ -53,17 +53,8 @@ function Footer() {
                         <div className="footer-widget">
                             <h4 className="footer-widget-title">Follow Us</h4>
                             <div className="footer-social">
-                                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-                                    <i className="fab fa-facebook-f"></i>
-                                </a>
-                                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
-                                    <i className="fab fa-twitter"></i>
-                                </a>
-                                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-                                    <i className="fab fa-instagram"></i>
-                                </a>
-                                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-                                    <i className="fab fa-linkedin-in"></i>
+                                <a href="https://github.com/FreshDealApp" target="_blank" rel="noopener noreferrer">
+                                    <i className="fab fa-github"></i>
                                 </a>
                             </div>
                         </div>
@@ -204,3 +195,4 @@ function Footer() {
 }
 
 export default Footer;
+

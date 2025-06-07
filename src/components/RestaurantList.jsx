@@ -5,7 +5,8 @@ import { getRestaurantsByProximity } from "@src/redux/thunks/restaurantThunks";
 import { addFavoriteThunk, removeFavoriteThunk, getFavoritesThunk } from "@src/redux/thunks/userThunks";
 import { tokenService } from "@src/services/tokenService.js";
 import CategoryFilter from "./CategoryFilter";
-import { isRestaurantOpen } from "../utils/RestaurantFilters.js";
+import { isRestaurantOpen } from "@src/utils/RestaurantFilters.js";
+import { useRestaurantFilter } from "@src/context/RestaurantFilterContext";
 
 function RestaurantList() {
     const dispatch = useDispatch();
@@ -13,7 +14,7 @@ function RestaurantList() {
     const loading = useSelector((state) => state.restaurant.restaurantsProximityLoading);
     const favoriteRestaurantsIDs = useSelector((state) => state.restaurant.favoriteRestaurantsIDs || []);
     const [selectedCategory, setSelectedCategory] = useState("All Categories");
-    const [showClosedRestaurants, setShowClosedRestaurants] = useState(false); // Fix: Changed initial state to false to start by showing only open restaurants
+    const { showClosedRestaurants } = useRestaurantFilter();
 
     useEffect(() => {
         dispatch(getRestaurantsByProximity());
@@ -41,21 +42,14 @@ function RestaurantList() {
         setSelectedCategory(category);
     };
 
-    const handleToggleClosedRestaurants = () => {
-        setShowClosedRestaurants(prevState => !prevState); // Fix: Created a dedicated handler for the toggle to ensure proper state changes
-    };
-
-    // Apply filters based on category and whether to show closed restaurants
     const filteredRestaurants = restaurants
         ?.filter(restaurant => {
-            // Category filter
             if (selectedCategory !== "All Categories" &&
                 restaurant.category !== selectedCategory &&
                 restaurant.categoryName !== selectedCategory) {
                 return false;
             }
 
-            // Open status filter - if showClosedRestaurants is false, only show open restaurants
             if (!showClosedRestaurants) {
                 const isOpen = isRestaurantOpen(
                     restaurant.workingDays,
@@ -102,32 +96,11 @@ function RestaurantList() {
 
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <p className="mb-0"><strong>{filteredRestaurants.length}</strong> restaurants found</p>
-
-                {/* Fixed toggle button UI that was overlapping with text */}
-                <div className="d-flex align-items-center">
-                    <div className="form-check form-switch">
-                        <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id="showClosedToggle"
-                            checked={showClosedRestaurants}
-                            onChange={handleToggleClosedRestaurants}
-                            style={{ cursor: 'pointer' }}
-                        />
-                    </div>
-                    <label
-                        className="ms-2 user-select-none"
-                        htmlFor="showClosedToggle"
-                        style={{ cursor: 'pointer', marginBottom: '0' }}
-                    >
-                        {showClosedRestaurants ? "Showing closed restaurants" : "Show closed restaurants"}
-                    </label>
-                </div>
             </div>
 
             {filteredRestaurants.length === 0 ? (
                 <div className="alert alert-info my-4">
-                    No restaurants found in the {selectedCategory} category. Try selecting a different category.
+                    No restaurants found in the {selectedCategory} category. Try selecting a different category or check the "Show closed" filter.
                 </div>
             ) : (
                 <div className="row">
@@ -146,7 +119,7 @@ function RestaurantList() {
                                 <Link
                                     to={`/Restaurant/${restaurant.id}`}
                                     className="restaurant-card"
-                                    style={{ pointerEvents: 'auto' }} // Make all restaurants clickable
+                                    style={{ pointerEvents: 'auto' }}
                                 >
                                     <div className="card h-100">
                                         <div className="card-img-container">
@@ -158,7 +131,6 @@ function RestaurantList() {
                                             {restaurant.category && (
                                                 <span className="category-badge">{restaurant.category || restaurant.categoryName}</span>
                                             )}
-                                            {/* Display closed or out of stock badge */}
                                             {isDisabled && (
                                                 <span className="status-badge">
                                                     {!isOpen ? 'Closed' : !hasStock ? 'Out of Stock' : ''}

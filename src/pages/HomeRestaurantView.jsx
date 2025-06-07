@@ -13,6 +13,7 @@ import debounce from 'lodash/debounce';
 import Recommendations from "@src/components/Recommendations.jsx";
 import FlashDealsModal from "@src/components/FlashDealsModal.jsx";
 import FlashDealsFloatingBadge from "@src/components/FlashDealsFloatingBadge.jsx";
+import { useRestaurantFilter } from "@src/context/RestaurantFilterContext"; // Import the context hook
 // Removed CategoryFilter import as it's now handled in RestaurantList component
 
 function HomeRestaurantView() {
@@ -30,6 +31,7 @@ function HomeRestaurantView() {
     const searchInputRef = useRef(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { showClosedRestaurants, toggleShowClosedRestaurants } = useRestaurantFilter(); // Use the global state and toggle
 
     // Show Flash Deals modal automatically when component mounts
     useEffect(() => {
@@ -265,6 +267,26 @@ function HomeRestaurantView() {
 
                                 <div className="mt-4">
                                     <AddressBar />
+                                    {/* Add the toggle switch here */}
+                                    <div className="restaurant-filter-toggle-container mt-3 d-flex align-items-center">
+                                        <div className="form-check form-switch">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id="showClosedGlobalToggleHomeView"
+                                                checked={showClosedRestaurants}
+                                                onChange={toggleShowClosedRestaurants}
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                        </div>
+                                        <label
+                                            className="ms-2 user-select-none"
+                                            htmlFor="showClosedGlobalToggleHomeView"
+                                            style={{ cursor: 'pointer', marginBottom: '0', color: 'white', fontSize: '14px', paddingLeft: "8px" }}
+                                        >
+                                            {showClosedRestaurants ? " Show closed restaurants" : " Show closed restaurants"}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -400,8 +422,8 @@ function HomeRestaurantView() {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    padding: 20px;
-                    color: #666;
+                    padding: 15px;
+                    color: #555;
                 }
 
                 .results-header {
@@ -528,6 +550,15 @@ function HomeRestaurantView() {
                     text-align: center;
                     color: #999;
                     padding: 15px 0;
+                }
+
+                .restaurant-filter-toggle-container label {
+                    color: #333; /* Default color for toggle label when not in hero */
+                }
+
+                /* Ensure toggle is visible in hero section */
+                .hero-section .restaurant-filter-toggle-container label {
+                    color: white !important; 
                 }
 
                 @media (max-width: 768px) {

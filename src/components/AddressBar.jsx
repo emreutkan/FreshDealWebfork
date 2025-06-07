@@ -12,45 +12,43 @@ function AddressBar() {
         (addresses.length > 0 ? addresses[0] : null);
 
     return (
-        <div className="address-bar">
-            <Link to="/Address" className="address-bar-content">
-                <div className="address-icon">
-                    <i className="bi bi-geo-alt-fill"></i>
-                </div>
-                <div className="address-details">
-                    <div className="delivery-text">Delivery to</div>
-                    {selectedAddress ? (
-                        <div className="address-text">
-                            {selectedAddress.street}, {selectedAddress.neighborhood}, {selectedAddress.district}
-                        </div>
-                    ) : (
-                        <div className="address-text">Add your delivery address</div>
-                    )}
-                </div>
-                <div className="address-arrow">
-                    <i className="bi bi-chevron-right"></i>
-                </div>
-            </Link>
+        <div className="address-bar-container">
+            <div className="address-bar">
+                <Link to="/Address" className="address-bar-content">
+                    <div className="address-icon">
+                        <i className="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div className="address-details">
+                        <div className="delivery-text">Delivery to</div>
+                        {selectedAddress ? (
+                            <div className="address-text">
+                                {selectedAddress.street}, {selectedAddress.neighborhood}, {selectedAddress.district}
+                            </div>
+                        ) : (
+                            <div className="address-text">Add your delivery address</div>
+                        )}
+                    </div>
+                    <div className="address-arrow">
+                        <i className="bi bi-chevron-right"></i>
+                    </div>
+                </Link>
+            </div>
 
             <style>{`
-                .address-bar {
+                .address-bar-container {
                     background-color: #fff;
                     border-radius: 12px;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
                     margin-bottom: 24px;
-                    transition: transform 0.3s, box-shadow 0.3s;
-                    overflow: hidden;
+                    padding: 18px 20px;
                 }
 
-                .address-bar:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+                .address-bar {
                 }
 
                 .address-bar-content {
                     display: flex;
                     align-items: center;
-                    padding: 18px 20px;
                     text-decoration: none;
                     color: inherit;
                     transition: background-color 0.2s;
@@ -91,7 +89,6 @@ function AddressBar() {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    max-width: 85%;
                 }
 
                 .address-arrow {
@@ -106,6 +103,9 @@ function AddressBar() {
                 }
 
                 @media (max-width: 576px) {
+                    .address-bar-container {
+                    }
+
                     .address-icon {
                         font-size: 20px;
                         width: 40px;
@@ -123,3 +123,4 @@ function AddressBar() {
 }
 
 export default AddressBar;
+
