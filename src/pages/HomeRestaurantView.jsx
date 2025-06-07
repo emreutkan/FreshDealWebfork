@@ -33,14 +33,26 @@ function HomeRestaurantView() {
     const navigate = useNavigate();
     const { showClosedRestaurants, toggleShowClosedRestaurants } = useRestaurantFilter(); // Use the global state and toggle
 
-    // Show Flash Deals modal automatically when component mounts
+    // Show Flash Deals modal on refresh or first visit in session
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowFlashDeals(true);
-        }, 1000);
+        const navigationEntries = performance.getEntriesByType("navigation");
+        // Ensure there's an entry and it has a type property
+        const navigationType = (navigationEntries.length > 0 && navigationEntries[0].type) ? navigationEntries[0].type : null;
 
-        return () => clearTimeout(timer);
-    }, []);
+        const isRefresh = navigationType === 'reload';
+        const hasVisitedThisSession = sessionStorage.getItem('homeRestaurantViewVisited');
+
+        if (isRefresh || !hasVisitedThisSession) {
+            // Mark that the view has been processed for modal display in this session or due to refresh.
+            sessionStorage.setItem('homeRestaurantViewVisited', 'true');
+
+            const timer = setTimeout(() => {
+                setShowFlashDeals(true);
+            }, 1000); // 1-second delay
+
+            return () => clearTimeout(timer);
+        }
+    }, []); // Empty dependency array means this runs once on mount
 
     // Existing selectors
     const searchResults = useSelector((state) =>
