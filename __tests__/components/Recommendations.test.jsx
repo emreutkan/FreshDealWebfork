@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import Recommendations from '../../src/components/Recommendations';
+import { RestaurantFilterProvider } from '../../src/context/RestaurantFilterContext';
 
 const createMockStore = (initialState) => ({
   getState: () => initialState,
@@ -26,9 +27,11 @@ describe('Recommendations component', () => {
 
     render(
       <Provider store={store}>
-        <MemoryRouter>
-          <Recommendations />
-        </MemoryRouter>
+        <RestaurantFilterProvider initialShowClosedRestaurants={true}>
+          <MemoryRouter>
+            <Recommendations />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
 
@@ -51,9 +54,11 @@ describe('Recommendations component', () => {
 
     const { container } = render(
       <Provider store={store}>
-        <MemoryRouter>
-          <Recommendations />
-        </MemoryRouter>
+        <RestaurantFilterProvider initialShowClosedRestaurants={true}>
+          <MemoryRouter>
+            <Recommendations />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
 
@@ -85,13 +90,15 @@ describe('Recommendations component', () => {
 
     render(
       <Provider store={store}>
-        <MemoryRouter>
-          <Recommendations />
-        </MemoryRouter>
+        <RestaurantFilterProvider initialShowClosedRestaurants={true}>
+          <MemoryRouter>
+            <Recommendations />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
 
-    expect(screen.getByText(/Mock Restaurant/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Recommended/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Recommended For You/i)).toBeInTheDocument();
+    expect(screen.getByText(/Mock Restaurant/i)).toBeTruthy();
   });
 });
