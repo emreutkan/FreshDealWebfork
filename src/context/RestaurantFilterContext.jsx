@@ -5,8 +5,8 @@ const RestaurantFilterContext = createContext();
 
 export const useRestaurantFilter = () => useContext(RestaurantFilterContext);
 
-export const RestaurantFilterProvider = ({ children }) => {
-  const [showClosedRestaurants, setShowClosedRestaurants] = useState(false);
+export const RestaurantFilterProvider = ({ children, initialShowClosedRestaurants = false }) => {
+  const [showClosedRestaurants, setShowClosedRestaurants] = useState(initialShowClosedRestaurants);
 
   const toggleShowClosedRestaurants = () => {
     setShowClosedRestaurants(prevState => !prevState);
