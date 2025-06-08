@@ -4,6 +4,7 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import RestaurantList from '../../src/components/RestaurantList';
+import { RestaurantFilterProvider } from '../../src/context/RestaurantFilterContext';
 
 const mockStore = configureStore([]);
 
@@ -28,9 +29,11 @@ describe('RestaurantList', () => {
   test('renders without crashing', () => {
     render(
       <Provider store={store}>
-        <MemoryRouter>
-          <RestaurantList />
-        </MemoryRouter>
+        <RestaurantFilterProvider>
+          <MemoryRouter>
+            <RestaurantList />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
 

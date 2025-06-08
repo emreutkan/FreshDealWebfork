@@ -5,6 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { MemoryRouter } from 'react-router-dom';
 import Favorites from '@src/pages/Favorites';
 import restaurantReducer from '@src/redux/slices/restaurantSlice';
+import { RestaurantFilterProvider } from '@src/context/RestaurantFilterContext';
 
 describe('Favorites Page', () => {
   const renderWithProviders = (ui, {
@@ -16,9 +17,11 @@ describe('Favorites Page', () => {
   } = {}) => {
     return render(
       <Provider store={store}>
-        <MemoryRouter>
-          {ui}
-        </MemoryRouter>
+        <RestaurantFilterProvider>
+          <MemoryRouter>
+            {ui}
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
   };
