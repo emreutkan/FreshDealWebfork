@@ -5,8 +5,8 @@ const RestaurantFilterContext = createContext();
 
 export const useRestaurantFilter = () => useContext(RestaurantFilterContext);
 
-export const RestaurantFilterProvider = ({ children }) => {
-  const [showClosedRestaurants, setShowClosedRestaurants] = useState(false);
+export const RestaurantFilterProvider = ({ children, initialShowClosedRestaurants = false }) => {
+  const [showClosedRestaurants, setShowClosedRestaurants] = useState(initialShowClosedRestaurants);
 
   const toggleShowClosedRestaurants = () => {
     setShowClosedRestaurants(prevState => !prevState);
@@ -22,4 +22,5 @@ export const RestaurantFilterProvider = ({ children }) => {
 // Add prop types validation
 RestaurantFilterProvider.propTypes = {
   children: PropTypes.node.isRequired,
+  initialShowClosedRestaurants: PropTypes.bool,
 };
