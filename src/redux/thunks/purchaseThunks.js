@@ -119,3 +119,26 @@ export const fetchRestaurantPurchasesAsync = createAsyncThunk(
         }
     }
 );
+
+export const checkPurchaseRatingAsync = createAsyncThunk(
+    'purchase/checkRating',
+    async (purchaseId, { rejectWithValue }) => {
+        try {
+            const token = await tokenService.getToken();
+            if (!token) {
+                return rejectWithValue('Authentication token is missing');
+            }
+            // The API function now returns the whole response, not just response.data
+            const response = await purchaseAPI.checkPurchaseRating(purchaseId, token);
+            // Assuming the actual data is in response.data based on typical apiClient structure
+            // and the Flask endpoint returns a JSON response directly.
+            return response; // Return the full response object
+        } catch (error) {
+            // It's good practice to log the error for debugging
+            console.error('Error in checkPurchaseRatingAsync:', error);
+            // Pass the error object or a specific message to rejectWithValue
+            return rejectWithValue(error.response?.data || { message: 'Failed to check purchase rating' });
+        }
+    }
+);
+

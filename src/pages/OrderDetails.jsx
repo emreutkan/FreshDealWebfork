@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrderDetailsAsync } from '@src/redux/thunks/purchaseThunks';
+import { fetchOrderDetailsAsync, checkPurchaseRatingAsync } from '@src/redux/thunks/purchaseThunks';
 import { addRestaurantCommentThunk } from '@src/redux/thunks/restaurantThunks';
 import axios from 'axios';
 import { API_BASE_URL } from '@src/redux/api/API';
@@ -51,14 +51,19 @@ const NEGATIVE_BADGES = [
 const OrderDetails = () => {
     const params = useParams();
     const orderId = params.id;
-    console.log(useParams());
-    console.log("Order ID:", orderId);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { currentOrder, loadingCurrentOrder } = useSelector(
         (state) => state.purchase
     );
     const token = useSelector((state) => state.user.token);
+
+    const [ratingCheck, setRatingCheck] = useState({
+        loading: true,
+        hasRating: false,
+        details: null,
+        error: null,
+    });
 
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -71,20 +76,67 @@ const OrderDetails = () => {
     const fileInputRef = useRef(null);
 
     useEffect(() => {
-        const fetchOrder = async () => {
+        const fetchOrderAndRatingStatus = async () => {
+            if (!orderId) {
+                console.error("Order ID is missing from URL parameters");
+                setRatingCheck(prev => ({ ...prev, loading: false, error: "Order ID missing" }));
+                return;
+            }
             try {
-                if (!orderId) {
-                    console.error("Order ID is missing from URL parameters");
-                    return;
+                await dispatch(fetchOrderDetailsAsync(orderId)).unwrap();
+
+                setRatingCheck(prev => ({ ...prev, loading: true, error: null }));
+                const ratingStatusAction = await dispatch(checkPurchaseRatingAsync(orderId));
+                const ratingStatus = ratingStatusAction.payload;
+
+                console.log("Rating Status from API for Order ID " + orderId + ":", ratingStatus);
+
+                if (ratingStatus && ratingStatus.success) {
+                    if (ratingStatus.has_rating) {
+                        setRatingCheck({
+                            loading: false,
+                            hasRating: true,
+                            details: {
+                                rating: ratingStatus.rating,
+                                comment: ratingStatus.comment,
+                                badge_names: ratingStatus.badge_names || [],
+                                rating_timestamp: ratingStatus.rating_timestamp,
+                            },
+                            error: null,
+                        });
+                    } else {
+                        setRatingCheck({ loading: false, hasRating: false, details: null, error: null });
+                    }
+                } else {
+                    console.warn("Rating status check was not successful or data is missing for Order ID " + orderId + ":", ratingStatus);
+                    setRatingCheck({
+                        loading: false,
+                        hasRating: false,
+                        details: null,
+                        error: ratingStatus?.message || "Failed to get rating status",
+                    });
                 }
-                await dispatch(fetchOrderDetailsAsync(orderId));
             } catch (err) {
-                console.error("Error fetching order details:", err);
+                console.error("Error fetching order details or rating status for Order ID " + orderId + ":", err);
+                let errorMessage = "Error fetching data";
+                if (err.message) {
+                    errorMessage = err.message;
+                } else if (typeof err === 'string') {
+                    errorMessage = err;
+                } else if (err.payload && err.payload.message) {
+                    errorMessage = err.payload.message;
+                }
+                setRatingCheck({
+                    loading: false,
+                    hasRating: false,
+                    details: null,
+                    error: errorMessage,
+                });
             }
         };
 
         if (orderId) {
-            fetchOrder();
+            fetchOrderAndRatingStatus();
         }
     }, [dispatch, orderId]);
 
@@ -121,9 +173,27 @@ const OrderDetails = () => {
                     setRating(0);
                     setComment('');
                     setSelectedBadges([]);
+                    if (orderId) {
+                        dispatch(checkPurchaseRatingAsync(orderId)).then(action => {
+                            const newRatingStatus = action.payload;
+                            if (newRatingStatus && newRatingStatus.success && newRatingStatus.has_rating) {
+                                setRatingCheck({
+                                    loading: false,
+                                    hasRating: true,
+                                    details: {
+                                        rating: newRatingStatus.rating,
+                                        comment: newRatingStatus.comment,
+                                        badge_names: newRatingStatus.badge_names || [],
+                                        rating_timestamp: newRatingStatus.rating_timestamp,
+                                    },
+                                    error: null,
+                                });
+                            }
+                        });
+                    }
                 })
                 .catch((error) => {
-                    alert(error.data?.message || "You have already rated this restaurant");
+                    alert(error.data?.message || error.message || "You have already rated this restaurant or an error occurred.");
                     console.error('Rating submission error:', error);
                 });
         }
@@ -162,7 +232,6 @@ const OrderDetails = () => {
                 description: reportComment.trim(),
             });
 
-            // Configure request with upload progress
             const response = await axios.post(`${API_BASE_URL}/report`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -273,18 +342,21 @@ const OrderDetails = () => {
         );
     };
 
-    const RatingStars = () => {
+    const RatingStars = ({ readOnly = false, existingRating = 0 }) => {
+        const currentRating = readOnly ? existingRating : rating;
         return (
-            <div className="rating-container">
+            <div className={`rating-container ${readOnly ? 'read-only' : ''}`} style={{ marginBottom: '15px' }}>
                 {[1, 2, 3, 4, 5].map((star) => (
                     <button
                         key={star}
                         className="star-button"
-                        onClick={() => setRating(star)}
+                        onClick={() => !readOnly && setRating(star)}
+                        disabled={readOnly}
+                        style={{ cursor: readOnly ? 'default' : 'pointer' }}
                     >
                         <i
-                            className={rating >= star ? "bi bi-star-fill" : "bi bi-star"}
-                            style={{color: rating >= star ? "#FFD700" : "#CCCCCC"}}
+                            className={currentRating >= star ? "bi bi-star-fill" : "bi bi-star"}
+                            style={{ color: currentRating >= star ? "#FFD700" : "#CCCCCC", fontSize: '1.5rem', marginRight: '5px' }}
                         ></i>
                     </button>
                 ))}
@@ -293,42 +365,53 @@ const OrderDetails = () => {
     };
 
     const BadgeSelector = () => {
-        const currentBadges = rating >= 3 ? POSITIVE_BADGES : NEGATIVE_BADGES;
-
+        const currentBadgesSource = rating >= 3 ? POSITIVE_BADGES : NEGATIVE_BADGES;
         return (
             <div className="badge-selector-container">
                 <h3 className="badge-selector-title">
-                    {rating >= 3
-                        ? "What did you like about your order?"
-                        : "What issues did you experience?"}
+                    {rating >= 3 ? "What did you like about your order?" : "What issues did you experience?"}
                 </h3>
                 <div className="badges-grid">
-                    {currentBadges.map((badge) => (
+                    {currentBadgesSource.map((badge) => (
                         <div
                             key={badge.id}
-                            className={`badge-item ${selectedBadges.includes(badge.id) ?
-                                (rating >= 3 ? 'positive-selected' : 'negative-selected') : ''}`}
+                            className={`badge-item ${selectedBadges.includes(badge.id) ? (rating >= 3 ? 'positive-selected' : 'negative-selected') : ''}`}
                             onClick={() => handleBadgeToggle(badge.id)}
                         >
                             <div className={`badge-icon-container ${rating >= 3 ? 'positive' : 'negative'}`}>
-                                <i
-                                    className={`bi ${badge.icon}`}
-                                    style={{
-                                        color: selectedBadges.includes(badge.id) ?
-                                            "#FFFFFF" : (rating >= 3 ? "#50703C" : "#D32F2F")
-                                    }}
-                                ></i>
+                                <i className={`bi ${badge.icon}`} style={{ color: selectedBadges.includes(badge.id) ? "#FFFFFF" : (rating >= 3 ? "#50703C" : "#D32F2F") }}></i>
                             </div>
-                            <span className={`badge-name ${!selectedBadges.includes(badge.id) && rating < 3 ? 'negative' : ''} 
-                                ${selectedBadges.includes(badge.id) ? 'selected' : ''}`}
-                            >
-                                {badge.name}
-                            </span>
-                            <span className={`badge-description ${!selectedBadges.includes(badge.id) && rating < 3 ? 'negative' : ''} 
-                                ${selectedBadges.includes(badge.id) ? 'selected' : ''}`}
-                            >
-                                {badge.description}
-                            </span>
+                            <span className={`badge-name ${!selectedBadges.includes(badge.id) && rating < 3 ? 'negative' : ''} ${selectedBadges.includes(badge.id) ? 'selected' : ''}`}>{badge.name}</span>
+                            <span className={`badge-description ${!selectedBadges.includes(badge.id) && rating < 3 ? 'negative' : ''} ${selectedBadges.includes(badge.id) ? 'selected' : ''}`}>{badge.description}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const ExistingBadgesDisplay = ({ badgeNames, existingRating }) => {
+        if (!badgeNames || badgeNames.length === 0) return null;
+        const allBadgeObjects = [...POSITIVE_BADGES, ...NEGATIVE_BADGES];
+        const badgesToDisplay = badgeNames.map(id => {
+            const badge = allBadgeObjects.find(b => String(b.id) === String(id));
+            return badge ? { ...badge, isPositiveContext: existingRating >= 3 } : null;
+        }).filter(Boolean);
+
+        if (badgesToDisplay.length === 0) return null;
+
+        return (
+            <div className="existing-badges-display" style={{ marginTop: '15px' }}>
+                <h4 style={{ fontSize: '1rem', marginBottom: '10px', color: '#333' }}>You highlighted:</h4>
+                <div className="badges-grid existing" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {badgesToDisplay.map((badge) => (
+                        <div
+                            key={badge.id}
+                            className={`badge-item existing-badge ${badge.isPositiveContext ? 'positive-selected' : 'negative-selected'}`}
+                            style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderRadius: '16px', backgroundColor: badge.isPositiveContext ? '#E8F5E9' : '#FFEBEE', border: badge.isPositiveContext ? '1px solid #A5D6A7' : '1px solid #FFCDD2', color: badge.isPositiveContext ? '#2E7D32' : '#C62828' }}
+                        >
+                            <i className={`bi ${badge.icon}`} style={{ marginRight: '8px', color: badge.isPositiveContext ? '#4CAF50' : '#D32F2F' }}></i>
+                            <span className="badge-name">{badge.name}</span>
                         </div>
                     ))}
                 </div>
@@ -337,40 +420,52 @@ const OrderDetails = () => {
     };
 
     const renderRatingSection = () => {
-        if (!currentOrder) {
-            return null;
-        }
-        if (currentOrder.status === 'COMPLETED') {
+        if (!currentOrder || currentOrder.status !== 'COMPLETED') return null;
+
+        if (ratingCheck.loading) {
             return (
-                <div className="rating-section">
-                    <h3 className="section-title">
-                        Share Your Experience
-                    </h3>
-
-                    <p className="rating-prompt">How was your order?</p>
-                    <RatingStars />
-
-                    {rating > 0 && <BadgeSelector />}
-
-                    <label className="input-label">Additional Comments</label>
-                    <textarea
-                        className="comment-input"
-                        placeholder="Tell us more about your experience (optional)"
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                    ></textarea>
-
-                    <button
-                        className={`submit-button ${rating < 3 && rating > 0 ? 'negative' : ''}`}
-                        onClick={handleSubmitRating}
-                        disabled={rating === 0}
-                    >
-                        Submit Review
-                    </button>
+                <div className="rating-section" style={{ padding: '20px', textAlign: 'center' }}>
+                    <p>Loading rating information...</p>
+                    <div className="spinner-border text-success" role="status"><span className="visually-hidden">Loading...</span></div>
                 </div>
             );
         }
-        return null;
+
+        if (ratingCheck.error && !ratingCheck.hasRating) {
+            console.warn("Error checking rating, falling back to submission form:", ratingCheck.error);
+        }
+
+        if (ratingCheck.hasRating && ratingCheck.details) {
+            const { rating: existingRating, comment: existingComment, badge_names: existingBadgeNames = [], rating_timestamp: existingRatingTimestamp } = ratingCheck.details;
+            return (
+                <div className="rating-section" style={{ padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+                    <h3 className="section-title" style={{ marginBottom: '15px', fontSize: '1.4rem', color: '#333' }}>Your Submitted Review</h3>
+                    <RatingStars readOnly={true} existingRating={existingRating} />
+                    {existingComment && (
+                        <div style={{ marginTop: '10px', marginBottom: '15px' }}>
+                            <strong style={{ color: '#555' }}>Your comment:</strong>
+                            <p style={{ marginTop: '5px', padding: '10px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '4px' }}>{existingComment}</p>
+                        </div>
+                    )}
+                    {existingRatingTimestamp && (
+                        <p style={{ fontSize: '0.9rem', color: '#777', marginTop: '10px' }}>Rated on: {new Date(existingRatingTimestamp).toLocaleDateString()}</p>
+                    )}
+                    <ExistingBadgesDisplay badgeNames={existingBadgeNames} existingRating={existingRating} />
+                </div>
+            );
+        } else {
+            return (
+                <div className="rating-section">
+                    <h3 className="section-title">Share Your Experience</h3>
+                    <p className="rating-prompt">How was your order?</p>
+                    <RatingStars />
+                    {rating > 0 && <BadgeSelector />}
+                    <label className="input-label">Additional Comments</label>
+                    <textarea className="comment-input" placeholder="Tell us more about your experience (optional)" value={comment} onChange={(e) => setComment(e.target.value)}></textarea>
+                    <button className={`submit-button ${rating < 3 && rating > 0 ? 'negative' : ''}`} onClick={handleSubmitRating} disabled={rating === 0}>Submit Review</button>
+                </div>
+            );
+        }
     };
 
     const ReportModal = () => (
@@ -430,8 +525,8 @@ const OrderDetails = () => {
 
                 {uploadProgress > 0 && uploadProgress < 100 && (
                     <div className="progress-container">
-                        <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
-                        <p className="progress-text">{`${Math.round(uploadProgress)}%`}</p>
+                        <div className="progress-bar" style={{ width: String(uploadProgress) + '%' }}></div>
+                        <p className="progress-text">{Math.round(uploadProgress) + '%'}</p>
                     </div>
                 )}
 
@@ -1218,30 +1313,12 @@ const OrderDetails = () => {
                     resize: vertical;
                 }
 
-                .progress-container {
-                    height: 8px;
-                    background-color: #F5F5F5;
-                    border-radius: 4px;
-                    margin-bottom: 24px;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .progress-bar {
-                    height: 100%;
-                    background-color: #50703C;
-                    border-radius: 4px;
-                }
-
-                .progress-text {
-                    position: absolute;
-                    width: 100%;
-                    text-align: center;
-                    font-size: 12px;
-                    color: #333;
-                    top: -20px;
-                    margin: 0;
-                }
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                    <div className="progress-container">
+                        <div className="progress-bar" style={{ width: String(uploadProgress) + '%' }}></div>
+                        <p className="progress-text">{Math.round(uploadProgress) + '%'}</p>
+                    </div>
+                )}
 
                 .report-submit-button {
                     width: 100%;

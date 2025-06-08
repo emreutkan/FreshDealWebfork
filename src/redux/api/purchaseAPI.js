@@ -75,4 +75,16 @@ export const purchaseAPI = {
         });
     },
 
+    // Check if a purchase has a rating
+    async checkPurchaseRating(
+        purchaseId,
+        token
+    ) {
+        return apiClient.request({
+            method: 'GET',
+            url: `${API_BASE_URL}/purchase/${purchaseId}/has-rating`,
+            token,
+        });
+    },
 };
+

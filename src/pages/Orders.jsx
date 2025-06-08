@@ -112,7 +112,7 @@ const Orders = () => {
             year: 'numeric',
         });
 
-        const formattedPrice = `${order.total_price}₺`;
+        const formattedPrice = `${order.total_price}₺`; // This line is already correct, no $ sign
         const statusInfo = getStatusInfo(order.status);
 
         return (
@@ -561,3 +561,4 @@ const Orders = () => {
 };
 
 export default Orders;
+
