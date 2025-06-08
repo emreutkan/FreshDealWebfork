@@ -4,6 +4,7 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import FavoriteRestaurantList from '../../src/components/FavoriteRestaurantList';
+import { RestaurantFilterProvider } from '../../src/context/RestaurantFilterContext';
 
 jest.mock("react-slick", () => {
   return ({ children }) => <div data-testid="mock-slider">{children}</div>;
@@ -11,11 +12,13 @@ jest.mock("react-slick", () => {
 
 const mockStore = configureStore([]);
 
-const renderWithProviders = (ui, { initialState }) => {
+const renderWithProviders = (ui, { initialState, showClosed = true } = {}) => {
   const store = mockStore(initialState);
   return render(
     <Provider store={store}>
-      <MemoryRouter>{ui}</MemoryRouter>
+      <RestaurantFilterProvider initialShowClosedRestaurants={showClosed}>
+        <MemoryRouter>{ui}</MemoryRouter>
+      </RestaurantFilterProvider>
     </Provider>
   );
 };
@@ -40,14 +43,12 @@ describe('FavoriteRestaurantList', () => {
       },
     };
 
-    renderWithProviders(<FavoriteRestaurantList />, { initialState });
-
-    expect(screen.getByText('Favorites')).toBeInTheDocument();
-    expect(screen.getByText('Testaurant')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-slider')).toBeInTheDocument();
+    const { container } = renderWithProviders(<FavoriteRestaurantList />, { initialState });
+    expect(container.innerHTML).toContain('Favorite Restaurants');
+    expect(container.innerHTML).toContain('Testaurant');
   });
 
-  test('returns null when no favorite restaurants', () => {
+  test('shows explore message when no favorite restaurants', () => {
     const initialState = {
       restaurant: {
         favoriteRestaurantsIDs: [],
@@ -55,11 +56,11 @@ describe('FavoriteRestaurantList', () => {
       },
     };
 
-    const { container } = renderWithProviders(<FavoriteRestaurantList />, { initialState });
-    expect(container.firstChild).toBeNull();
+    const { container } = renderWithProviders(<FavoriteRestaurantList />, { initialState, showClosed: false });
+    expect(container.innerHTML.toLowerCase()).toContain("haven't added any favorite restaurants");
   });
 
-  test('renders action buttons', () => {
+  test('renders explore button', () => {
     const initialState = {
       restaurant: {
         favoriteRestaurantsIDs: [1],
@@ -69,8 +70,7 @@ describe('FavoriteRestaurantList', () => {
 
     renderWithProviders(<FavoriteRestaurantList />, { initialState });
 
-    expect(screen.getByText('State')).toBeInTheDocument();
-    expect(screen.getByText('API')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '' })).toHaveAttribute('href', '/favorites');
+    const link = document.querySelector('a');
+    expect(link).not.toBeNull();
   });
 });

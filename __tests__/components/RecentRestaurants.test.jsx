@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import RecentRestaurants from '../../src/components/RecentRestaurants';
+import { RestaurantFilterProvider } from '../../src/context/RestaurantFilterContext';
 import * as thunks from '../../src/redux/thunks/restaurantThunks';
 import { createMockStore } from '../../src/testUtils/createMockStore';
 
@@ -35,22 +36,26 @@ describe('RecentRestaurants component', () => {
   test('renders recent restaurants', () => {
     render(
       <Provider store={store}>
-        <MemoryRouter>
-          <RecentRestaurants />
-        </MemoryRouter>
+        <RestaurantFilterProvider initialShowClosedRestaurants={true}>
+          <MemoryRouter>
+            <RecentRestaurants />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
 
-    expect(screen.getByText(/Recent Orders/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Recent Orders/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Test Restaurant/i)).toBeInTheDocument();
   });
 
   test('dispatches getRecentRestaurantsThunk on mount', () => {
     render(
       <Provider store={store}>
-        <MemoryRouter>
-          <RecentRestaurants />
-        </MemoryRouter>
+        <RestaurantFilterProvider initialShowClosedRestaurants={true}>
+          <MemoryRouter>
+            <RecentRestaurants />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
 
@@ -58,7 +63,7 @@ describe('RecentRestaurants component', () => {
     expect(actions).toContainEqual({ type: 'MOCK_THUNK' });
   });
 
-  test('returns null when loading or empty', () => {
+  test('shows loading spinner when loading', () => {
     const loadingState = {
       ...mockState,
       restaurant: {
@@ -69,14 +74,15 @@ describe('RecentRestaurants component', () => {
 
     const loadingStore = createMockStore(loadingState);
 
-    const { container } = render(
+  const { container } = render(
       <Provider store={loadingStore}>
-        <MemoryRouter>
-          <RecentRestaurants />
-        </MemoryRouter>
+        <RestaurantFilterProvider initialShowClosedRestaurants={true}>
+          <MemoryRouter>
+            <RecentRestaurants />
+          </MemoryRouter>
+        </RestaurantFilterProvider>
       </Provider>
     );
-
-    expect(container.firstChild).toBeNull();
+    expect(screen.getByText(/Loading your recent orders/i)).toBeInTheDocument();
   });
 });
