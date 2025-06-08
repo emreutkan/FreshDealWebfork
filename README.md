@@ -74,6 +74,17 @@ npm run dev
 - `npm run build` - Build the app for production
 - `npm run lint` - Run ESLint for code quality
 - `npm run preview` - Preview the production build locally
+- `npm test` - Run unit tests with Jest
+
+## Running Tests
+
+Before running tests, install dependencies with `npm install` if you haven't already. Then run:
+
+```bash
+npm test --silent
+```
+
+All test suites should pass without failures.
 
 ## Project Structure
 
