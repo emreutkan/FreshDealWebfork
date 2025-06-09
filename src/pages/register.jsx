@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import signupimage from '@src/images/signup-g.svg';
 import { Link, useNavigate } from "react-router";
 import ScrollToTop from "./ScrollToTop.jsx";

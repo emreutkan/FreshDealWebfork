@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchActiveOrdersAsync, fetchPreviousOrdersAsync } from '@src/redux/thunks/purchaseThunks.js';
@@ -258,7 +258,7 @@ const Orders = () => {
                 </div>
             )}
 
-            <style jsx>{`
+            <style>{`
                 .orders-container {
                     min-height: 100vh;
                     background-color: #f8f9fa;

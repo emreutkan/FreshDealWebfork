@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getUserRankingsThunk } from '@src/redux/thunks/userThunks';
@@ -102,7 +102,7 @@ const Rankings = () => {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .rankings-container {
                     min-height: 100vh;
                     background-color: #FFFFFF;

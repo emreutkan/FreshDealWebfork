@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchCart } from '@src/redux/thunks/cartThunks.js';
@@ -22,7 +22,7 @@ const CheckoutSuccess = ({ onAnimationComplete }) => {
                 <i className="bi bi-check-circle-fill"></i>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .checkout-success-container {
                     display: flex;
                     justify-content: center;
@@ -487,7 +487,7 @@ const Checkout = () => {
                 <span>Card added successfully</span>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .checkout-container {
                     background-color: #F9FAFB;
                     min-height: 100vh;

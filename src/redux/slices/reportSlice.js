@@ -26,6 +26,6 @@ const reportSlice = createSlice({
     },
 });
 
-export const {} = reportSlice.actions;
+
 
 export default reportSlice.reducer;

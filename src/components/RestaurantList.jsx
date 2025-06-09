@@ -197,7 +197,7 @@ function RestaurantList() {
                 </div>
             )}
 
-            <style jsx>{`
+            <style>{`
                 .restaurant-card {
                     text-decoration: none;
                     color: inherit;

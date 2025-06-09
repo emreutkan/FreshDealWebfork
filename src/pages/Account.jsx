@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '@src/redux/slices/userSlice';
@@ -560,7 +560,7 @@ const Account = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .account-main-container {
                     background-color: #f8f9fa;
                     min-height: 100vh;

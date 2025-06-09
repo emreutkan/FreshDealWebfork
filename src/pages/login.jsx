@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import signinimage from "@src/images/signin-g.svg";
 import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";

@@ -71,7 +71,7 @@ function Footer() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .footer {
                     background-color: #f8f9fa;
                     padding: 60px 0 0;
