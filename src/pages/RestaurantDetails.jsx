@@ -732,7 +732,7 @@ const RestaurantDetails = () => {
                 </div>
             )}
 
-            <style jsx>{`
+            <style>{`
                 .restaurant-detail-container {
                     padding-bottom: 80px;
                 }

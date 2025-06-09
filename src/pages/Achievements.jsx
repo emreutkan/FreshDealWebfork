@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserAchievementsThunk } from '@src/redux/thunks/achievementThunks';
@@ -164,7 +164,7 @@ const Achievements = () => {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .achievements-container {
                     min-height: 100vh;
                     background-color: #f8f9fa;

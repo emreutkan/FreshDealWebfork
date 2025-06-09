@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchCart, resetCart, removeItemFromCart, updateCartItem } from '@src/redux/thunks/cartThunks.js';
@@ -285,7 +285,7 @@ const Cart = () => {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .cart-page {
                     background-color: #F9FAFB;
                     min-height: 100vh;

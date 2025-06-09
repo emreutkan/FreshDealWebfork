@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -138,7 +138,7 @@ const Favorites = () => {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .favorites-container {
                     min-height: 100vh;
                     background-color: #FFFFFF;

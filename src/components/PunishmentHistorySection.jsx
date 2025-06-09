@@ -110,7 +110,7 @@ const PunishmentHistorySection = ({ restaurantId }) => {
                 </div>
             )}
 
-            <style jsx>{`
+            <style>{`
                 .punishment-history-section {
                     margin-top: 1.5rem;
                     padding: 1rem;

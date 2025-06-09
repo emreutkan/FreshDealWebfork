@@ -128,7 +128,7 @@ const Header = () => {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .header-container {
                     background-color: #FFFFFF;
                     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);

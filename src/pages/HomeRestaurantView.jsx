@@ -345,7 +345,7 @@ function HomeRestaurantView() {
                 <FlashDealsFloatingBadge onClick={() => setShowFlashDeals(true)} />
             )}
 
-            <style jsx>{`
+            <style>{`
                 .home-view {
                     min-height: 100vh;
                     background-color: #f8f9fa;

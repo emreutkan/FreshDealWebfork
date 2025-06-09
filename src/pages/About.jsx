@@ -168,7 +168,7 @@ const About = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .about-page {
                     background-color: #FFFFFF;
                 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -313,7 +313,7 @@ const RestaurantComments = () => {
                 <i className="bi bi-arrow-repeat"></i> Refresh
             </button>
 
-            <style jsx>{`
+            <style>{`
                 .restaurant-comments-container {
                     max-width: 1200px;
                     margin: 0 auto;

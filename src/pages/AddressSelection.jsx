@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ScrollToTop from "@src/pages/ScrollToTop";
 import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -529,7 +529,7 @@ const AddressSelection = () => {
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
           .address-selection-container {
             background-color: #f8f9fa;
             min-height: 100vh;
